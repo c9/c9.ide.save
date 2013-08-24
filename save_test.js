@@ -40,7 +40,13 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.ide.editors/page",
         "plugins/c9.ide.ace/ace",
         "plugins/c9.ide.save/save",
-        "plugins/c9.fs/vfs",
+        {
+            packagePath: "plugins/c9.vfs.client/vfs_client",
+            smithIo     : {
+                "prefix": "/smith.io/server"
+            }
+        },
+        "plugins/c9.ide.auth/auth",
         {
             packagePath: "plugins/c9.fs/fs",
             baseProc: baseProc
