@@ -44,15 +44,15 @@ define(function(require, exports, module) {
         
         var saveBuffer = {};
         
-        const SAVING   = 0;
-        const SAVED    = 1;
-        const OFFLINE  = 2;
+        var SAVING   = 0;
+        var SAVED    = 1;
+        var OFFLINE  = 2;
         
-        const YESTOALL = -2;
-        const NOTOALL  = -1;
-        const YES      = 2;
-        const NO       = 1;
-        const CANCEL   = 0;
+        var YESTOALL = -2;
+        var NOTOALL  = -1;
+        var YES      = 2;
+        var NO       = 1;
+        var CANCEL   = 0;
         
         var loaded = false;
         function load(){

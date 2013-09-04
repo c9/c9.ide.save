@@ -27,8 +27,8 @@ define(function(require, exports, module) {
         var plugin = new Plugin("Ajax.org", main.consumes);
         // var emit   = plugin.getEmitter();
         
-        const INTERVAL       = 60000;
-        const CHANGE_TIMEOUT = 500;
+        var INTERVAL       = 60000;
+        var CHANGE_TIMEOUT = 500;
         
         var docChangeTimeout   = null;
         var btnSave, autosave, saveInterval;
