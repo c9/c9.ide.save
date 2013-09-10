@@ -148,8 +148,8 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     
                     var c1 = function(){ count++; }
                     
-                    save.on("before.save", c1);
-                    save.on("after.save", c1);
+                    save.on("beforeSave", c1);
+                    save.on("afterSave", c1);
                     
                     var page = changePage(path, function(){
                         save.save(page, null, function(err){
@@ -160,8 +160,8 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                 if (err) throw err;
                                 expect(data).to.equal("test" + path);
                                 expect(count).to.equal(2);
-                                save.off("before.save", c1);
-                                save.off("after.save", c1);
+                                save.off("beforeSave", c1);
+                                save.off("afterSave", c1);
                                 done();
                             });
                         });
@@ -257,9 +257,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 it('should be triggered when closing a changed page', function(done) {
                     var path = "/save3.txt";
                     var page = changePage(path, function(){
-                        save.once("before.warn", function(){
+                        save.once("beforeWarn", function(){
                             setTimeout(function(){
-                                save.once("after.save", function(){
+                                save.once("afterSave", function(){
                                     fs.readFile(path, function(err, data){
                                         if (err) throw err;
                                         expect(data).to.equal("test" + path);
@@ -277,7 +277,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 it('should not be triggered when closing an unchanged page', function(done) {
                     var path  = "/save1.txt";
                     var page = tabs.findPage(path);
-                    save.once("before.warn", function(){
+                    save.once("beforeWarn", function(){
                         throw new Error();
                     });
                     done();
@@ -292,7 +292,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                             }
                         }
                     }, function(err, page){
-                        save.once("before.warn", function(){
+                        save.once("beforeWarn", function(){
                             throw new Error();
                         });
                         

@@ -134,7 +134,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 var page = changePage(path, function(){
                     expect(page.document.changed).to.ok
                     
-                    save.once("after.save", function(){
+                    save.once("afterSave", function(){
                         fs.readFile(path, function(err, data){
                             if (err) throw err;
                             expect(data).to.equal("test" + path);

@@ -73,7 +73,7 @@ define(function(require, exports, module) {
                 transformButton();
             });
             
-            tabs.on("page.create", function(e){
+            tabs.on("pageCreate", function(e){
                 var page = e.page;
                 page.document.undoManager.on("change", function(e){
                     if (!autosave || !page.path)
@@ -87,7 +87,7 @@ define(function(require, exports, module) {
                 }, plugin);
             }, plugin);
             
-            tabs.on("page.destroy", function(e){
+            tabs.on("pageDestroy", function(e){
                 if (!e.page.path)
                     return;
                 
@@ -97,7 +97,7 @@ define(function(require, exports, module) {
                 savePage(e.page);
             }, plugin);
             
-            save.on("before.warn", function(e){
+            save.on("beforeWarn", function(e){
                 if (autosave && !e.page.document.meta.newfile) {
                     savePage(e.page);
                     return false;

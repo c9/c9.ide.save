@@ -109,7 +109,7 @@ define(function(require, exports, module) {
                 }
             }, plugin);
     
-            tabs.on("page.before.close", function(e) {
+            tabs.on("pageBeforeClose", function(e) {
                 var page        = e.page;
                 var undoManager = page.document.undoManager;
                 
@@ -136,7 +136,7 @@ define(function(require, exports, module) {
                     return;
                 
                 // For autosave and other plugins
-                if (emit("before.warn", { page : page }) === false)
+                if (emit("beforeWarn", { page : page }) === false)
                     return;
 
                 drawConfirm();
@@ -216,7 +216,7 @@ define(function(require, exports, module) {
             tabs.on("focus", function(e){
                 btnSave.setAttribute("disabled", !available(true));
             });
-            tabs.on("page.destroy", function(e){
+            tabs.on("pageDestroy", function(e){
                 if (e.last)
                     btnSave.setAttribute("disabled", true);
             });
@@ -544,7 +544,7 @@ define(function(require, exports, module) {
             if (!doc.loaded)
                 return;
     
-            if (emit("before.save", { 
+            if (emit("beforeSave", { 
                 path     : path,
                 document : doc,
                 options  : options
@@ -596,7 +596,7 @@ define(function(require, exports, module) {
                     settings.save();
                 }
                 
-                emit("after.save", { 
+                emit("afterSave", { 
                     path     : path,
                     document : doc, 
                     err      : err, 
@@ -859,7 +859,7 @@ define(function(require, exports, module) {
         
         /**
          * Save handling in Cloud9
-         * @event before.warn Fires before the save warning is shown. The save 
+         * @event beforeWarn Fires before the save warning is shown. The save 
          *     warning occurs when the document of a page is in the changed 
          *     state and the page is closed. You can test for the changed state
          *     via `page.document.changed`.
@@ -903,13 +903,13 @@ define(function(require, exports, module) {
              *     {Boolean} silentsave whether to show an error message in the UI when a save fails
              *     {Number}  timeout    the time any success state is shown in the UI
              * @param callback(err) {Function} called after the file is saved or had an error
-             * @event before.save Fires before the file is being saved
+             * @event beforeSave Fires before the file is being saved
              *   cancellable: true
              *   object:
              *     {String}   path
              *     {Document} document
              *     {Object}   options
-             * @event after.save Fires after a file is saved or had an error
+             * @event afterSave Fires after a file is saved or had an error
              *   object:
              *     {String}   path
              *     {Error}    err
