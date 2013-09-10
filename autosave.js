@@ -63,7 +63,7 @@ define(function(require, exports, module) {
             }, plugin);
     
             // when we're back online we'll trigger an autosave if enabled
-            c9.on("state.change", function(e) {
+            c9.on("stateChange", function(e) {
                 if (e.state & c9.STORAGE && !(e.last & c9.STORAGE))
                     check();
             }, plugin);

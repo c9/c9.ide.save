@@ -161,7 +161,7 @@ define(function(require, exports, module) {
 
                             delete winCloseConfirm.page;
 
-                            emit("dialog.close", { page: page });
+                            emit("dialogClose", { page: page });
                             
                             page.document.meta.$ignoreSave = true;
                             page.close();
@@ -174,7 +174,7 @@ define(function(require, exports, module) {
                             done();
                     }
                     else
-                        emit("dialog.cancel", { page: page });
+                        emit("dialogCancel", { page: page });
 
                     winCloseConfirm.off("hide", onHide);
                 });
@@ -221,7 +221,7 @@ define(function(require, exports, module) {
                     btnSave.setAttribute("disabled", true);
             });
             
-            c9.on("state.change", function(e){
+            c9.on("stateChange", function(e){
                 if (e.state & c9.STORAGE) 
                     plugin.enable();
                 else 
@@ -274,7 +274,7 @@ define(function(require, exports, module) {
                     btnSaveNo.dispatchEvent('click', {htmlEvent: {}});
             })
             
-            emit("draw.confirm");
+            emit("drawConfirm");
         }
         
         function drawSaveAs(){
@@ -448,7 +448,7 @@ define(function(require, exports, module) {
                 return false;
             })
         
-            emit("draw.saveas");
+            emit("drawSaveas");
         }
         
         /***** Methods *****/
@@ -610,7 +610,7 @@ define(function(require, exports, module) {
                 
                 checkBuffer(path);
             });
-            fs.on("progress.upload", fnProgress);
+            fs.on("progressUpload", fnProgress);
     
             return false;
         }
