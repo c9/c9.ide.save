@@ -864,7 +864,7 @@ define(function(require, exports, module) {
          *     state and the page is closed. You can test for the changed state
          *     via `page.document.changed`.
          *   cancellable: true
-         *   object:
+         * @param {Object} e
          *     {Page} page
          **/
         plugin.freezePublicAPI({
@@ -897,7 +897,7 @@ define(function(require, exports, module) {
              * Saves the contents of a page to disk using `fs.writeFile`
              * @param {Page} page the tab page to save
              * @param {Object} options
-             *   object:
+             * @param {Object} e
              *     {Boolean} force      whether to save no matter what conditions
              *     {String}  path       the new path of the file (otherwise page.path is used)
              *     {Boolean} silentsave whether to show an error message in the UI when a save fails
@@ -905,12 +905,12 @@ define(function(require, exports, module) {
              * @param callback(err) {Function} called after the file is saved or had an error
              * @event beforeSave Fires before the file is being saved
              *   cancellable: true
-             *   object:
+             * @param {Object} e
              *     {String}   path
              *     {Document} document
              *     {Object}   options
              * @event afterSave Fires after a file is saved or had an error
-             *   object:
+             * @param {Object} e
              *     {String}   path
              *     {Error}    err
              *     {Document} document
