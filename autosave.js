@@ -73,33 +73,33 @@ define(function(require, exports, module) {
                 transformButton();
             });
             
-            tabs.on("pageCreate", function(e){
-                var page = e.page;
-                page.document.undoManager.on("change", function(e){
-                    if (!autosave || !page.path)
+            tabs.on("tabCreate", function(e){
+                var tab = e.tab;
+                tab.document.undoManager.on("change", function(e){
+                    if (!autosave || !tab.path)
                         return;
                     
                     clearTimeout(docChangeTimeout);
                     docChangeTimeout = setTimeout(function() {
                         // stripws.disable();
-                        savePage(page);
+                        savePage(tab);
                     }, CHANGE_TIMEOUT);
                 }, plugin);
             }, plugin);
             
-            tabs.on("pageDestroy", function(e){
-                if (!e.page.path)
+            tabs.on("tabDestroy", function(e){
+                if (!e.tab.path)
                     return;
                 
                 if (tabs.getPages().length == 1)
                     btnSave.hide();
         
-                savePage(e.page);
+                savePage(e.tab);
             }, plugin);
             
             save.on("beforeWarn", function(e){
-                if (autosave && !e.page.document.meta.newfile) {
-                    savePage(e.page);
+                if (autosave && !e.tab.document.meta.newfile) {
+                    savePage(e.tab);
                     return false;
                 }
             }, plugin);
@@ -140,27 +140,27 @@ define(function(require, exports, module) {
             if (!autosave) return;
             
             var pages = tabs.getPages();
-            for (var page, i = 0, l = pages.length; i < l; i++) {
-                if ((page = pages[i]).document.changed && page.path)
-                    savePage(page)
+            for (var tab, i = 0, l = pages.length; i < l; i++) {
+                if ((tab = pages[i]).document.changed && tab.path)
+                    savePage(tab)
             }
         }
     
-        function savePage(page, force) {
+        function savePage(tab, force) {
             if (!autosave) return;
             
             if (!c9.has(c9.STORAGE)) {
-                save.setSavingState(page, "offline");
+                save.setSavingState(tab, "offline");
                 return;
             }
             
-            if (!force && (!page.path 
-              || !page.document.changed
-              || page.document.meta.newfile
-              || page.document.meta.error))
+            if (!force && (!tab.path 
+              || !tab.document.changed
+              || tab.document.meta.newfile
+              || tab.document.meta.error))
                 return;
     
-            save.save(page, { silentsave: true, timeout: 1 }, function() {
+            save.save(tab, { silentsave: true, timeout: 1 }, function() {
                 // stripws.enable();
             });
         }
