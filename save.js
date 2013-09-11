@@ -61,8 +61,8 @@ define(function(require, exports, module) {
             
             function available(editor){
                 return !!editor && (c9.status & c9.STORAGE)
-                    && (!tabs.focussedPage
-                    || typeof tabs.focussedPage.path == "string");
+                    && (!tabs.focussedTab
+                    || typeof tabs.focussedTab.path == "string");
             }
             
             // This prevents the native save dialog to popup while being offline
@@ -142,7 +142,7 @@ define(function(require, exports, module) {
                 drawConfirm();
 
                 // Activate tab to be warned for
-                tabs.activatePage(tab);
+                tabs.activateTab(tab);
 
                 winCloseConfirm.tab = tab;
                 winCloseConfirm.all  = CANCEL;
@@ -459,7 +459,7 @@ define(function(require, exports, module) {
     
         function saveAll(callback) {
             var count = 0;
-            tabs.getPages().forEach(function (tab) {
+            tabs.getTabs().forEach(function (tab) {
                 if (typeof tab.path != "string")
                     return;
                 
@@ -493,7 +493,7 @@ define(function(require, exports, module) {
                         return next();
     
                     // Activate tab
-                    tabs.activatePage(tab);
+                    tabs.activateTab(tab);
                     
                     fileDesc.replaceMarkup("<div><h3>Save " 
                         + ui.escapeXML(tab.path) + "?</h3><div>This file has "
@@ -530,7 +530,7 @@ define(function(require, exports, module) {
         
         // `silentsave` indicates whether the saving of the file is forced by the user or not.
         function save(tab, options, callback) {
-            if (!tab && !(tab = tabs.focussedPage))
+            if (!tab && !(tab = tabs.focussedTab))
                 return;
     
             // Optional callback, against code, but allowing for now
@@ -633,7 +633,7 @@ define(function(require, exports, module) {
         }
     
         function saveAs(tab, callback){
-            if (!tab && !(tab = tabs.focussedPage))
+            if (!tab && !(tab = tabs.focussedTab))
                 return;
     
             if (typeof tab.path != "string")
@@ -744,7 +744,7 @@ define(function(require, exports, module) {
         
         function expandTree(){
             function expand(){
-                var tab = tabs.focussedPage;
+                var tab = tabs.focussedTab;
                 if (!tab) return;
                 
                 // var path  = tab.path
@@ -842,7 +842,7 @@ define(function(require, exports, module) {
             
             // Set all buffers that are saving to an error state
             for (var path in saveBuffer) {
-                var tab = tabs.findPage(path);
+                var tab = tabs.findTab(path);
                 if (tab) 
                     setSavingState(tab, "offline");
             }

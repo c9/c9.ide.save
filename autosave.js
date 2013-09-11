@@ -82,7 +82,7 @@ define(function(require, exports, module) {
                     clearTimeout(docChangeTimeout);
                     docChangeTimeout = setTimeout(function() {
                         // stripws.disable();
-                        savePage(tab);
+                        saveTab(tab);
                     }, CHANGE_TIMEOUT);
                 }, plugin);
             }, plugin);
@@ -91,15 +91,15 @@ define(function(require, exports, module) {
                 if (!e.tab.path)
                     return;
                 
-                if (tabs.getPages().length == 1)
+                if (tabs.getTabs().length == 1)
                     btnSave.hide();
         
-                savePage(e.tab);
+                saveTab(e.tab);
             }, plugin);
             
             save.on("beforeWarn", function(e){
                 if (autosave && !e.tab.document.meta.newfile) {
-                    savePage(e.tab);
+                    saveTab(e.tab);
                     return false;
                 }
             }, plugin);
@@ -139,14 +139,14 @@ define(function(require, exports, module) {
         function check() {
             if (!autosave) return;
             
-            var pages = tabs.getPages();
+            var pages = tabs.getTabs();
             for (var tab, i = 0, l = pages.length; i < l; i++) {
                 if ((tab = pages[i]).document.changed && tab.path)
-                    savePage(tab)
+                    saveTab(tab)
             }
         }
     
-        function savePage(tab, force) {
+        function saveTab(tab, force) {
             if (!autosave) return;
             
             if (!c9.has(c9.STORAGE)) {

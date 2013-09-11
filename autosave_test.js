@@ -94,9 +94,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 return tab.pane.aml.getPage("editor::" + tab.editorType).$ext;
         });
         
-        function changePage(path, done){
-            var tab = tabs.findPage(path);
-            tabs.focusPage(tab);
+        function changeTab(path, done){
+            var tab = tabs.findTab(path);
+            tabs.focusTab(tab);
             tab.document.undoManager.once("change", done);
             tab.document.editor.ace.insert("test");
             return tab;
@@ -131,7 +131,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             
             it('should automatically save a tab that is changed', function(done) {
                 var path  = "/autosave1.txt";
-                var tab = changePage(path, function(){
+                var tab = changeTab(path, function(){
                     expect(tab.document.changed).to.ok
                     
                     save.once("afterSave", function(){

@@ -91,9 +91,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 return tab.pane.aml.getPage("editor::" + tab.editorType).$ext;
         });
         
-        function changePage(path, done){
-            var tab = tabs.findPage(path);
-            tabs.focusPage(tab);
+        function changeTab(path, done){
+            var tab = tabs.findTab(path);
+            tabs.focusTab(tab);
             tab.document.undoManager.once("change", done);
             tab.document.editor.ace.insert("test");
             return tab;
@@ -151,7 +151,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     save.on("beforeSave", c1);
                     save.on("afterSave", c1);
                     
-                    var tab = changePage(path, function(){
+                    var tab = changeTab(path, function(){
                         save.save(tab, null, function(err){
                             if (err) throw err;
                             expect(tab.document.changed).to.not.ok
@@ -168,7 +168,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     });
                 });
                 it('should queue saves when called sequentially', function(done) {
-                    var tab = tabs.focussedPage;
+                    var tab = tabs.focussedTab;
                     var count = 0;
                     save.save(tab, null, function(err){
                         if (err) throw err;
@@ -182,7 +182,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     });
                 });
                 it('should save a tab at a new path/filename', function(done) {
-                    var tab = changePage("/save2.txt", function(){
+                    var tab = changeTab("/save2.txt", function(){
                         var path = "/save2b.txt";
                         files.push(path); //cleanup
                         
@@ -198,7 +198,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                 
                                 fs.unlink(path, function(){
                                     tab.close();
-                                    expect(tabs.getPages().indexOf(tab)).to.equal(-1);
+                                    expect(tabs.getTabs().indexOf(tab)).to.equal(-1);
                                     done();
                                 });
                             });
@@ -256,7 +256,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 });
                 it('should be triggered when closing a changed tab', function(done) {
                     var path = "/save3.txt";
-                    var tab = changePage(path, function(){
+                    var tab = changeTab(path, function(){
                         save.once("beforeWarn", function(){
                             setTimeout(function(){
                                 save.once("afterSave", function(){
@@ -276,7 +276,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 });
                 it('should not be triggered when closing an unchanged tab', function(done) {
                     var path  = "/save1.txt";
-                    var tab = tabs.findPage(path);
+                    var tab = tabs.findTab(path);
                     save.once("beforeWarn", function(){
                         throw new Error();
                     });
@@ -314,14 +314,14 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     });
                 });
                 after(function(done){
-                    tabs.getPages().forEach(function(tab){
+                    tabs.getTabs().forEach(function(tab){
                         tab.unload();
                     });
                     done();
                 });
                 
                 it('should save a file under a new filename', function(done) {
-                    var tab = tabs.focussedPage;
+                    var tab = tabs.focussedTab;
                     files.push("/save1b.txt");
                     save.saveAs(tab, function(err){
                         expect(err).to.not.ok
@@ -339,7 +339,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     }, 500);
                 });
                 it('should trigger saveAs and then cancel it', function(done) {
-                    var tab = tabs.focussedPage;
+                    var tab = tabs.focussedTab;
                     save.saveAs(tab, function(err){
                         expect(err).to.ok
                         expect(seen).to.ok
@@ -368,14 +368,14 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     });
                 });
                 after(function(done){
-                    tabs.getPages().forEach(function(tab){
+                    tabs.getTabs().forEach(function(tab){
                         tab.unload();
                     });
                     done();
                 });
                 
                 it('should revert a change tab', function(done) {
-                    var tab = changePage("/save1.txt", function(){
+                    var tab = changeTab("/save1.txt", function(){
                         save.revertToSaved(tab, function(err){
                             expect(err).to.not.ok
                             expect(tab.document.changed).to.not.ok
@@ -402,16 +402,16 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     });
                 });
                 after(function(done){
-                    tabs.getPages().forEach(function(tab){
+                    tabs.getTabs().forEach(function(tab){
                         tab.unload();
                     });
                     done();
                 });
                 
                 it('should save all changed files', function(done) {
-                    var page3 = tabs.findPage("/save3.txt");
-                    var page1 = changePage("/save1.txt", function(){
-                        var page2 = changePage("/save2.txt", function(){
+                    var page3 = tabs.findTab("/save3.txt");
+                    var page1 = changeTab("/save1.txt", function(){
+                        var page2 = changeTab("/save2.txt", function(){
                             expect(page1.document.changed).to.ok;
                             expect(page2.document.changed).to.ok;
                             expect(page3.document.changed).to.not.ok;
@@ -439,16 +439,16 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     });
                 });
                 after(function(done){
-                    tabs.getPages().forEach(function(tab){
+                    tabs.getTabs().forEach(function(tab){
                         tab.unload();
                     });
                     done();
                 });
                 
                 it('should be triggered when closing multiple pages that are changed', function(done) {
-                    var page1 = changePage("/save1.txt", function(){
-                        var page2 = changePage("/save2.txt", function(){
-                            var page3 = changePage("/save3.txt", function(){
+                    var page1 = changeTab("/save1.txt", function(){
+                        var page2 = changeTab("/save2.txt", function(){
+                            var page3 = changeTab("/save3.txt", function(){
                                 var pages = [page1, page2, page3];
                                 
                                 save.saveAllInteractive(pages, function(result){
