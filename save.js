@@ -895,7 +895,7 @@ define(function(require, exports, module) {
             
             /**
              * Saves the contents of a page to disk using `fs.writeFile`
-             * @param {Page} page the tab page to save
+             * @param {Page} page the pane page to save
              * @param {Object} options
              * @param {Object} e
              *     {Boolean} force      whether to save no matter what conditions
@@ -920,14 +920,14 @@ define(function(require, exports, module) {
             
             /**
              * Saves a file and allows the user to choose the path
-             * @param {Page}     page          the tab page to save
+             * @param {Page}     page          the pane page to save
              * @param {Function} callback(err) called after the file is saved or had an error
              */
             saveAs : saveAs,
             
             /**
              * Reverts the value of a page / document back to the value that is on disk
-             * @param {Page} page the tab page to save
+             * @param {Page} page the pane page to save
              */
             revertToSaved : revertToSaved,
             
