@@ -7,7 +7,7 @@
 define(function(require, exports, module) {
     main.consumes = [
         "plugin", "c9", "settings", "ui", "layout", "tooltip",
-        "anims", "menus", "tabs", "preferences", "save"
+        "anims", "menus", "tabManager", "preferences", "save"
     ];
     main.provides = ["autosave"];
     return main;
@@ -18,7 +18,7 @@ define(function(require, exports, module) {
         var settings = imports.settings;
         var save     = imports.save;
         var tooltip  = imports.tooltip;
-        var tabs     = imports.tabs;
+        var tabs     = imports.tabManager;
         var prefs    = imports.preferences;
         // var stripws  = imports.stripws;
         

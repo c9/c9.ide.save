@@ -9,7 +9,7 @@
 define(function(require, exports, module) {
     main.consumes = [
         "plugin", "c9", "util", "fs", "layout", "commands", "tree",
-        "menus", "settings", "ui", "tabs", "fs.cache.xml"
+        "menus", "settings", "ui", "tabManager", "fs.cache.xml"
     ];
     main.provides = ["save"];
     return main;
@@ -24,7 +24,7 @@ define(function(require, exports, module) {
         var menus    = imports.menus;
         var fs       = imports.fs;
         var layout   = imports.layout;
-        var tabs     = imports.tabs;
+        var tabs     = imports.tabManager;
         var tree     = imports.tree;
         var fsCache  = imports["fs.cache.xml"];
         

@@ -36,7 +36,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             defaultEditor: "texteditor"
         },
         "plugins/c9.ide.editors/editor",
-        "plugins/c9.ide.editors/tabs",
+        "plugins/c9.ide.editors/tabmanager",
         "plugins/c9.ide.editors/pane",
         "plugins/c9.ide.editors/tab",
         "plugins/c9.ide.ace/ace",
@@ -65,7 +65,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             setup    : expect.html.mocked
         },
         {
-            consumes : ["tabs", "save", "fs", "autosave"],
+            consumes : ["tabManager", "save", "fs", "autosave"],
             provides : [],
             setup    : main
         }
@@ -76,7 +76,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
     });
     
     function main(options, imports, register) {
-        var tabs     = imports.tabs;
+        var tabs     = imports.tabManager;
         var fs       = imports.fs;
         var save     = imports.save;
         var autosave = imports.autosave;
