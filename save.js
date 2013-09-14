@@ -8,7 +8,7 @@
  */
 define(function(require, exports, module) {
     main.consumes = [
-        "plugin", "c9", "util", "fs", "layout", "commands", "tree",
+        "Plugin", "c9", "util", "fs", "layout", "commands", "tree",
         "menus", "settings", "ui", "tabManager", "fs.cache.xml"
     ];
     main.provides = ["save"];
@@ -17,7 +17,7 @@ define(function(require, exports, module) {
     function main(options, imports, register) {
         var c9       = imports.c9;
         var util     = imports.util;
-        var Plugin   = imports.plugin;
+        var Plugin   = imports.Plugin;
         var settings = imports.settings;
         var ui       = imports.ui;
         var commands = imports.commands;

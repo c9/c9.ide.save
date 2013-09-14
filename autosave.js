@@ -6,7 +6,7 @@
  */
 define(function(require, exports, module) {
     main.consumes = [
-        "plugin", "c9", "settings", "ui", "layout", "tooltip",
+        "Plugin", "c9", "settings", "ui", "layout", "tooltip",
         "anims", "menus", "tabManager", "preferences", "save"
     ];
     main.provides = ["autosave"];
@@ -14,7 +14,7 @@ define(function(require, exports, module) {
 
     function main(options, imports, register) {
         var c9       = imports.c9;
-        var Plugin   = imports.plugin;
+        var Plugin   = imports.Plugin;
         var settings = imports.settings;
         var save     = imports.save;
         var tooltip  = imports.tooltip;
