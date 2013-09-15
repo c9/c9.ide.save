@@ -125,7 +125,7 @@ define(function(require, exports, module) {
                         Rollback to a previous state, or make comparisons.",
                     width : "250px",
                     hideonclick : true
-                });
+                }, plugin);
             }
             else {
                 
