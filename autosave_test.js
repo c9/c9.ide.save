@@ -12,7 +12,6 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             packagePath : "plugins/c9.core/c9",
             startdate   : new Date(),
             debug       : true,
-            smithIo     : "{\"prefix\":\"/smith.io/server\"}",
             hosted      : true,
             local       : false,
             davPrefix   : "/"
@@ -43,9 +42,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.ide.save/save",
         "plugins/c9.ide.save/autosave",
         {
-            packagePath: "plugins/c9.vfs.client/vfs_client",
+            packagePath : "plugins/c9.vfs.client/vfs_client",
             smithIo     : {
-                "prefix": "/smith.io/server"
+                "path": "/smith.io/server"
             }
         },
         "plugins/c9.ide.auth/auth",
