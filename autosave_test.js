@@ -23,7 +23,10 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.core/util",
         "plugins/c9.ide.ui/lib_apf",
         "plugins/c9.ide.ui/tooltip",
-        "plugins/c9.core/settings",
+        {
+            packagePath: "plugins/c9.core/settings",
+            testing: true
+        },
         {
             packagePath  : "plugins/c9.ide.ui/ui",
             staticPrefix : "plugins/c9.ide.ui"

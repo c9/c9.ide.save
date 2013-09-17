@@ -8,6 +8,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         .setAttribute("id", "saveStatus");
     
     architect.resolveConfig([
+        {
             packagePath : "plugins/c9.core/c9",
             startdate   : new Date(),
             debug       : true,
@@ -21,7 +22,10 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.core/http",
         "plugins/c9.core/util",
         "plugins/c9.ide.ui/lib_apf",
-        "plugins/c9.core/settings",
+        {
+            packagePath: "plugins/c9.core/settings",
+            testing: true
+        },
         {
             packagePath  : "plugins/c9.ide.ui/ui",
             staticPrefix : "plugins/c9.ide.ui"
