@@ -642,11 +642,13 @@ define(function(require, exports, module) {
             drawSaveAs();
     
             txtSaveAs.setValue(fs.getFilename(page.path));
-            lblPath.setProperty("caption", fs.getParentPath(page.path) + "/");
-            
             winSaveAs.page = page;
             winSaveAs.show();
-            
+            // HACK: setProperty doesn't immediately reflect the UI state - needs to be delayed
+            setTimeout(function () {
+                lblPath.setProperty("caption", fs.getParentPath(page.path) + "/");
+            });
+
             winSaveAs.on("hide", function listen(){
                 if (winSaveAs.callback) {
                     var err = new Error("User Cancelled Save");
@@ -765,6 +767,7 @@ define(function(require, exports, module) {
             clearTimeout(pageTimers[page.name]);
             
             page.className.remove("saving", "saved", "error");
+            page.document.meta.saving = state;
             
             if (state == "saving") {
                 btnSave.show();
@@ -806,6 +809,8 @@ define(function(require, exports, module) {
                         saveStatus.style.display = "none";
                         page.className.remove("saved");
                     }
+                    delete page.document.meta.saving;
+                    emit("page.savingstate", {page: page});
                 }, timeout || 500);
             }
             else if (state == "offline") {
@@ -821,6 +826,8 @@ define(function(require, exports, module) {
                 btnSave.setCaption("Not saved");
                 page.className.add("error");
             }
+
+            emit("page.savingstate", {page: page});
         }
         
         /***** Lifecycle *****/
