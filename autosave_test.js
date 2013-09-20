@@ -12,19 +12,20 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             packagePath : "plugins/c9.core/c9",
             startdate   : new Date(),
             debug       : true,
-            smithIo     : "{\"prefix\":\"/smith.io/server\"}",
             hosted      : true,
             local       : false,
             davPrefix   : "/"
         },
         
         "plugins/c9.core/ext",
-        "plugins/c9.core/events",
         "plugins/c9.core/http",
         "plugins/c9.core/util",
         "plugins/c9.ide.ui/lib_apf",
         "plugins/c9.ide.ui/tooltip",
-        "plugins/c9.core/settings",
+        {
+            packagePath: "plugins/c9.core/settings",
+            testing: true
+        },
         {
             packagePath  : "plugins/c9.ide.ui/ui",
             staticPrefix : "plugins/c9.ide.ui"
@@ -43,11 +44,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.ide.save/save",
         "plugins/c9.ide.save/autosave",
         {
-            packagePath: "plugins/c9.vfs.client/vfs_client",
+            packagePath : "plugins/c9.vfs.client/vfs_client",
             smithIo     : {
-                "prefix": "/smith.io/server"
+                "path": "/smith.io/server"
             }
         },
+        "plugins/c9.vfs.client/endpoint.standalone",
         "plugins/c9.ide.auth/auth",
         {
             packagePath: "plugins/c9.fs/fs",
@@ -57,7 +59,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         
         // Mock plugins
         {
-            consumes : ["emitter", "apf", "ui"],
+            consumes : ["apf", "ui"],
             provides : [
                 "commands", "menus", "commands", "layout", "watcher", 
                 "save", "anims", "tree", "preferences", "clipboard"
