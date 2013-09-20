@@ -6,19 +6,19 @@
  */
 define(function(require, exports, module) {
     main.consumes = [
-        "Plugin", "c9", "settings", "ui", "layout", "tooltip",
-        "anims", "menus", "tabManager", "preferences", "save"
+        "plugin", "c9", "settings", "ui", "layout", "tooltip",
+        "anims", "menus", "tabs", "preferences", "save"
     ];
     main.provides = ["autosave"];
     return main;
 
     function main(options, imports, register) {
         var c9       = imports.c9;
-        var Plugin   = imports.Plugin;
+        var Plugin   = imports.plugin;
         var settings = imports.settings;
         var save     = imports.save;
         var tooltip  = imports.tooltip;
-        var tabs     = imports.tabManager;
+        var tabs     = imports.tabs;
         var prefs    = imports.preferences;
         // var stripws  = imports.stripws;
         
@@ -63,7 +63,7 @@ define(function(require, exports, module) {
             }, plugin);
     
             // when we're back online we'll trigger an autosave if enabled
-            c9.on("stateChange", function(e) {
+            c9.on("state.change", function(e) {
                 if (e.state & c9.STORAGE && !(e.last & c9.STORAGE))
                     check();
             }, plugin);
@@ -73,33 +73,33 @@ define(function(require, exports, module) {
                 transformButton();
             });
             
-            tabs.on("tabCreate", function(e){
-                var tab = e.tab;
-                tab.document.undoManager.on("change", function(e){
-                    if (!autosave || !tab.path)
+            tabs.on("page.create", function(e){
+                var page = e.page;
+                page.document.undoManager.on("change", function(e){
+                    if (!autosave || !page.path)
                         return;
                     
                     clearTimeout(docChangeTimeout);
                     docChangeTimeout = setTimeout(function() {
                         // stripws.disable();
-                        saveTab(tab);
+                        savePage(page);
                     }, CHANGE_TIMEOUT);
                 }, plugin);
             }, plugin);
             
-            tabs.on("tabDestroy", function(e){
-                if (!e.tab.path)
+            tabs.on("page.destroy", function(e){
+                if (!e.page.path)
                     return;
                 
-                if (tabs.getTabs().length == 1)
+                if (tabs.getPages().length == 1)
                     btnSave.hide();
         
-                saveTab(e.tab);
+                savePage(e.page);
             }, plugin);
             
-            save.on("beforeWarn", function(e){
-                if (autosave && !e.tab.document.meta.newfile) {
-                    saveTab(e.tab);
+            save.on("before.warn", function(e){
+                if (autosave && !e.page.document.meta.newfile) {
+                    savePage(e.page);
                     return false;
                 }
             }, plugin);
@@ -125,7 +125,7 @@ define(function(require, exports, module) {
                         Rollback to a previous state, or make comparisons.",
                     width : "250px",
                     hideonclick : true
-                }, plugin);
+                });
             }
             else {
                 
@@ -139,28 +139,28 @@ define(function(require, exports, module) {
         function check() {
             if (!autosave) return;
             
-            var pages = tabs.getTabs();
-            for (var tab, i = 0, l = pages.length; i < l; i++) {
-                if ((tab = pages[i]).document.changed && tab.path)
-                    saveTab(tab)
+            var pages = tabs.getPages();
+            for (var page, i = 0, l = pages.length; i < l; i++) {
+                if ((page = pages[i]).document.changed && page.path)
+                    savePage(page)
             }
         }
     
-        function saveTab(tab, force) {
+        function savePage(page, force) {
             if (!autosave) return;
             
             if (!c9.has(c9.STORAGE)) {
-                save.setSavingState(tab, "offline");
+                save.setSavingState(page, "offline");
                 return;
             }
             
-            if (!force && (!tab.path 
-              || !tab.document.changed
-              || tab.document.meta.newfile
-              || tab.document.meta.error))
+            if (!force && (!page.path 
+              || !page.document.changed
+              || page.document.meta.newfile
+              || page.document.meta.error))
                 return;
     
-            save.save(tab, { silentsave: true, timeout: 1 }, function() {
+            save.save(page, { silentsave: true, timeout: 1 }, function() {
                 // stripws.enable();
             });
         }
