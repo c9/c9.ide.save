@@ -115,8 +115,8 @@ define(function(require, exports, module) {
                 
                 // Won't save documents that don't support paths
                 // Use path = "" to trigger Save As Dialog
-                if (typeof page.path != "string") 
-                    return; 
+                if (typeof page.path !== "string")
+                    return;
                 
                 // There's nothing to save
                 if (undoManager.isAtBookmark())
@@ -126,11 +126,14 @@ define(function(require, exports, module) {
                 if (!page.document.changed)
                     return;
                 
-                // Already checked, now just closing
-                if (page.document.meta.$ignoreSave) {
+                // Already checked, now just closing - volatile attribute
+                if (page.document.meta.$ignoreSave)
                     return;
-                }
-                
+
+                // Custom page no-prompt-saving - persistent attribute
+                if (page.document.meta.ignoreSave)
+                    return;
+
                 // Won't save new file that is empty
                 if (page.document.meta.newfile && !page.document.value)
                     return;
@@ -544,7 +547,7 @@ define(function(require, exports, module) {
             if (!doc.loaded)
                 return;
     
-            if (emit("before.save", { 
+            if (emit("before.save", {
                 path     : path,
                 document : doc,
                 options  : options
