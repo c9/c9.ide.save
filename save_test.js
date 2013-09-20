@@ -12,18 +12,19 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             packagePath : "plugins/c9.core/c9",
             startdate   : new Date(),
             debug       : true,
-            smithIo     : "{\"prefix\":\"/smith.io/server\"}",
             hosted      : true,
             local       : false,
             davPrefix   : "/"
         },
         
         "plugins/c9.core/ext",
-        "plugins/c9.core/events",
         "plugins/c9.core/http",
         "plugins/c9.core/util",
         "plugins/c9.ide.ui/lib_apf",
-        "plugins/c9.core/settings",
+        {
+            packagePath: "plugins/c9.core/settings",
+            testing: true
+        },
         {
             packagePath  : "plugins/c9.ide.ui/ui",
             staticPrefix : "plugins/c9.ide.ui"
@@ -41,11 +42,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.ide.ace/ace",
         "plugins/c9.ide.save/save",
         {
-            packagePath: "plugins/c9.vfs.client/vfs_client",
+            packagePath : "plugins/c9.vfs.client/vfs_client",
             smithIo     : {
-                "prefix": "/smith.io/server"
+                "path": "/smith.io/server"
             }
         },
+        "plugins/c9.vfs.client/endpoint.standalone",
         "plugins/c9.ide.auth/auth",
         {
             packagePath: "plugins/c9.fs/fs",
@@ -55,7 +57,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         
         // Mock plugins
         {
-            consumes : ["emitter", "apf", "ui"],
+            consumes : ["apf", "ui"],
             provides : [
                 "commands", "menus", "commands", "layout", "watcher", 
                 "save", "anims", "tree", "preferences", "clipboard"
@@ -146,7 +148,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     var path  = "/save1.txt";
                     var count = 0;
                     
-                    var c1 = function(){ count++; }
+                    var c1 = function(){ count++; };
                     
                     save.on("beforeSave", c1);
                     save.on("afterSave", c1);
@@ -385,8 +387,8 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                             expect(tab.document.undoManager.isAtBookmark()).to.ok;
                             expect(tab.className.names.indexOf("loading")).to.equal(-1);
                             done();
-                        })
-                    })
+                        });
+                    });
                 });
             });
             describe("saveAll", function(){
@@ -421,7 +423,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                 expect(page2.document.changed).to.not.ok;
                                 expect(page3.document.changed).to.not.ok;
                                 done();
-                            })
+                            });
                         });
                     });
                 });
@@ -476,6 +478,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 after(function(done){
                     document.body.style.marginBottom = "";
                     tabs.unload();
+                    done();
                 });
             }
         });

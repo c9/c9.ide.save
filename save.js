@@ -115,7 +115,7 @@ define(function(require, exports, module) {
                 
                 // Won't save documents that don't support paths
                 // Use path = "" to trigger Save As Dialog
-                if (typeof tab.path != "string") 
+                if (typeof tab.path !== "string") 
                     return; 
                 
                 // There's nothing to save
@@ -126,11 +126,14 @@ define(function(require, exports, module) {
                 if (!tab.document.changed)
                     return;
                 
-                // Already checked, now just closing
-                if (tab.document.meta.$ignoreSave) {
+                // Already checked, now just closing - volatile attribute
+                if (tab.document.meta.$ignoreSave)
                     return;
-                }
-                
+
+                // Custom tab no-prompt-saving - persistent attribute
+                if (tab.document.meta.ignoreSave)
+                    return;
+
                 // Won't save new file that is empty
                 if (tab.document.meta.newfile && !tab.document.value)
                     return;
