@@ -37,9 +37,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             defaultEditor: "texteditor"
         },
         "plugins/c9.ide.editors/editor",
-        "plugins/c9.ide.editors/tabs",
+        "plugins/c9.ide.editors/tabmanager",
+        "plugins/c9.ide.editors/pane",
         "plugins/c9.ide.editors/tab",
-        "plugins/c9.ide.editors/page",
         "plugins/c9.ide.ace/ace",
         "plugins/c9.ide.save/save",
         "plugins/c9.ide.save/autosave",
@@ -67,7 +67,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             setup    : expect.html.mocked
         },
         {
-            consumes : ["tabs", "save", "fs", "autosave"],
+            consumes : ["tabManager", "save", "fs", "autosave"],
             provides : [],
             setup    : main
         }
@@ -78,7 +78,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
     });
     
     function main(options, imports, register) {
-        var tabs     = imports.tabs;
+        var tabs     = imports.tabManager;
         var fs       = imports.fs;
         var save     = imports.save;
         var autosave = imports.autosave;
@@ -91,17 +91,17 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     + count + " of " + expected);
         }
         
-        expect.html.setConstructor(function(page){
-            if (typeof page == "object")
-                return page.tab.aml.getPage("editor::" + page.editorType).$ext;
+        expect.html.setConstructor(function(tab){
+            if (typeof tab == "object")
+                return tab.pane.aml.getPage("editor::" + tab.editorType).$ext;
         });
         
-        function changePage(path, done){
-            var page = tabs.findPage(path);
-            tabs.focusPage(page);
-            page.document.undoManager.once("change", done);
-            page.document.editor.ace.insert("test");
-            return page;
+        function changeTab(path, done){
+            var tab = tabs.findTab(path);
+            tabs.focusTab(tab);
+            tab.document.undoManager.once("change", done);
+            tab.document.editor.ace.insert("test");
+            return tab;
         }
         
         var files = [];
@@ -112,7 +112,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 apf.config.setProperty("allow-select", false);
                 apf.config.setProperty("allow-blur", false);
                 
-                tabs.getTabs()[0].focus();
+                tabs.getPanes()[0].focus();
                 
                 var path = "/autosave1.txt";
                 fs.writeFile(path, path, function(){
@@ -131,12 +131,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 document.body.style.marginBottom = "180px";
             });
             
-            it('should automatically save a page that is changed', function(done) {
+            it('should automatically save a tab that is changed', function(done) {
                 var path  = "/autosave1.txt";
-                var page = changePage(path, function(){
-                    expect(page.document.changed).to.ok
+                var tab = changeTab(path, function(){
+                    expect(tab.document.changed).to.ok
                     
-                    save.once("after.save", function(){
+                    save.once("afterSave", function(){
                         fs.readFile(path, function(err, data){
                             if (err) throw err;
                             expect(data).to.equal("test" + path);
