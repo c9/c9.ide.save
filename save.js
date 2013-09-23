@@ -882,19 +882,6 @@ define(function(require, exports, module) {
          */
         plugin.freezePublicAPI({
             /**
-             * @property {0} SAVING
-             */
-            SAVING    : SAVING,
-            /**
-             * @property {1} SAVED
-             */
-            SAVED     : SAVED,
-            /**
-             * @property {2} OFFLINE
-             */
-            OFFLINE   : OFFLINE,
-            
-            /**
              * @property {-2} YESTOALL  The state when the user clicked the "Yes To All" button.
              */
             YESTOALL  : YESTOALL,
