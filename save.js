@@ -25,6 +25,9 @@ define(function(require, exports, module) {
         var css           = require("text!./save.css");
         var saveAsMarkup  = require("text!./saveas.xml");
         var confirmMarkup = require("text!./confirm.xml");
+        var basename      = require("path").basename;
+        var dirname       = require("path").dirname ;
+
         
         /***** Initialization *****/
         
@@ -640,13 +643,13 @@ define(function(require, exports, module) {
     
             drawSaveAs();
     
-            txtSaveAs.setValue(fs.getFilename(tab.path));
+            txtSaveAs.setValue(basename(tab.path));
             winSaveAs.page = tab;
             winSaveAs.show();
             
             // HACK: setProperty doesn't immediately reflect the UI state - needs to be delayed
             setTimeout(function () {
-                lblPath.setProperty("caption", fs.getParentPath(tab.path) + "/");
+                lblPath.setProperty("caption", dirname(tab.path) + "/");
             });
 
             winSaveAs.on("hide", function listen(){
