@@ -1,11 +1,5 @@
 /*global winConfirm, btnConfirmOk */
 
-/**
- * Save Module for the Cloud9 IDE
- *
- * @copyright 2010-2012, Ajax.org B.V.
- * @license GPLv3 <http://www.gnu.org/licenses/gpl.txt>
- */
 define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "util", "fs", "layout", "commands", "tree",
@@ -872,6 +866,7 @@ define(function(require, exports, module) {
          * Saving of files to disk. This plugin provides a simple way to save
          * files to the workspace. It also provides a save as dialog as well as
          * menu items, commands and a button in the toolbar.
+         * @singleton
          **/
         /**
          * @command save
@@ -924,11 +919,11 @@ define(function(require, exports, module) {
                 /**
                  * Fires before the file is being saved
                  * @event beforeSave
-                 * @cancellable
                  * @param {Object}   e
                  * @param {String}   e.path      The path of the file that to be saved.
                  * @param {Document} e.document  The document object that contains the file contents.
                  * @param {Object}   e.options   The options passed to the {@link #save} method.
+                 * @cancellable
                  */
                 "beforeSave",
                 /**
@@ -948,9 +943,9 @@ define(function(require, exports, module) {
                  * changed state using `tab.document.changed`.
                  * 
                  * @event beforeWarn
-                 * @cancellable
                  * @param {Object} e
                  * @param {Tab}    e.tab
+                 * @cancellable
                  */
                 "beforeWarn",
                 /**
@@ -1019,7 +1014,8 @@ define(function(require, exports, module) {
             
             /**
              * Saves all changed pages
-             * @param {Function} callback(err) called after the files are saved or had an error
+             * @param {Function} callback      called after the files are saved or had an error
+             * @param {Error}    callback.err  The error object, if an error occured during saving.
              */
             saveAll : saveAll,
             
@@ -1034,11 +1030,12 @@ define(function(require, exports, module) {
              *   constants:
              * 
              * <table>
-             * <tr><td>save.YESTOALL</td><td>   The user saved all remaining tabs.</td></tr>
-             * <tr><td>save.NOTOALL</td><td>    The user saved none of the remaining tabs.</td></tr>
-             * <tr><td>save.YES</td><td>        The user saved the last tab in the list.</td></tr>
-             * <tr><td>save.NO</td><td>         The user did not save the last tab in the list.</td></tr>
-             * <tr><td>save.CANCEL</td><td>     The user cancelled the saving of the tabs.</td></tr>
+             * <tr><td>Constant</td><td>                              Description</td></tr>
+             * <tr><td>{@link save#YESTOALL save.YESTOALL}</td><td>   The user saved all remaining tabs.</td></tr>
+             * <tr><td>{@link save#NOTOALL save.NOTOALL}</td><td>     The user saved none of the remaining tabs.</td></tr>
+             * <tr><td>{@link save#YES save.YES}</td><td>             The user saved the last tab in the list.</td></tr>
+             * <tr><td>{@link save#NO save.NO}</td><td>               The user did not save the last tab in the list.</td></tr>
+             * <tr><td>{@link save#CANCEL save.CANCEL}</td><td>       The user cancelled the saving of the tabs.</td></tr>
              * </table>
              */
             saveAllInteractive : saveAllInteractive,
