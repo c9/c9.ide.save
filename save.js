@@ -70,6 +70,7 @@ define(function(require, exports, module) {
                 bindKey : {mac: "Command-S", win: "Ctrl-S"},
                 exec    : function(){}
             }, plugin);
+            
             commands.addCommand({
                 name    : "save",
                 hint    : "save the currently active file to disk",
@@ -814,7 +815,7 @@ define(function(require, exports, module) {
                         tab.className.remove("saved");
                     }
                     delete tab.document.meta.saving;
-                    emit("page.savingstate", {page: tab});
+                    emit("tabSavingState", { tab: tab });
                 }, timeout || 500);
             }
             else if (state == "offline") {
@@ -830,7 +831,6 @@ define(function(require, exports, module) {
                 btnSave.setCaption("Not saved");
                 tab.className.add("error");
             }
-
             emit("tabSavingState", { tab: tab });
         }
         
@@ -869,76 +869,151 @@ define(function(require, exports, module) {
         /***** Register and define API *****/
         
         /**
-         * Save handling in Cloud9
-         * @event beforeWarn Fires before the save warning is shown. The save 
-         *     warning occurs when the document of a tab is in the changed 
-         *     state and the tab is closed. You can test for the changed state
-         *     via `tab.document.changed`.
-         *   cancellable: true
-         * @param {Object} e
-         *     {Tab} tab
+         * Saving of files to disk. This plugin provides a simple way to save
+         * files to the workspace. It also provides a save as dialog as well as
+         * menu items, commands and a button in the toolbar.
          **/
+        /**
+         * @command save
+         */
+        /**
+         * @command saveas
+         */
+        /**
+         * @command saveall
+         */
+        /**
+         * @command reverttosaved
+         */
         plugin.freezePublicAPI({
+            /**
+             * @property {0} SAVING
+             */
             SAVING    : SAVING,
+            /**
+             * @property {1} SAVED
+             */
             SAVED     : SAVED,
+            /**
+             * @property {2} OFFLINE
+             */
             OFFLINE   : OFFLINE,
             
             /**
-             * @property {Constant} the user clicked the "Yes To All" button.
+             * @property {-2} YESTOALL  The state when the user clicked the "Yes To All" button.
              */
             YESTOALL  : YESTOALL,
             /**
-             * @property {Constant} the user clicked the "No To All" button.
+             * @property {-1} NOTOALL  The state when the user clicked the "No To All" button.
              */
             NOTOALL   : NOTOALL,
             /**
-             * @property {Constant} the user clicked the "Yes" button.
+             * @property {2} YES  The state when the user clicked the "Yes" button.
              */
             YES       : YES,
             /**
-             * @property {Constant} the user clicked the "No" button.
+             * @property {1} NO  The state when the user clicked the "No" button.
              */
             NO        : NO,
             /**
-             * @property {Constant} the user clicked the "Cancel" button.
+             * @property {0} CANCEL  The state when the user clicked the "Cancel" button.
              */
             CANCEL    : CANCEL,
             
+            _events : [
+                /**
+                 * Fires before the file is being saved
+                 * @event beforeSave
+                 * @cancellable
+                 * @param {Object}   e
+                 * @param {String}   e.path      The path of the file that to be saved.
+                 * @param {Document} e.document  The document object that contains the file contents.
+                 * @param {Object}   e.options   The options passed to the {@link #save} method.
+                 */
+                "beforeSave",
+                /**
+                 * Fires after a file is saved or had an error
+                 * @event afterSave 
+                 * @param {Object}   e
+                 * @param {String}   e.path      The path of the file that to be saved.
+                 * @param {Error}    e.err       An error object if an error occured during saving.
+                 * @param {Document} e.document  The document object that contains the file contents.
+                 * @param {Object}   e.options   The options passed to the {@link #save} method.
+                 */
+                "afterSave",
+                /**
+                 * Fires before the save warning is shown. The save 
+                 * warning occurs when the document of a tab is in the changed 
+                 * state and the tab is being closed. You can test for the 
+                 * changed state using `tab.document.changed`.
+                 * 
+                 * @event beforeWarn
+                 * @cancellable
+                 * @param {Object} e
+                 * @param {Tab}    e.tab
+                 */
+                "beforeWarn",
+                /**
+                 * Fires when the save confirmation dialog (when closing an 
+                 * unsaved tab) is closed and not cancelled.
+                 * @event dialogClose
+                 * @param {Object} e
+                 * @param {Tab}    e.tab
+                 */
+                "dialogClose",
+                /**
+                 * Fires when the save confirmation dialog (when closing an 
+                 * unsaved tab) is closed by clicking the cancel or X button.
+                 * @event dialogCancel
+                 * @param {Object} e
+                 * @param {Tab}    e.tab
+                 */
+                "dialogCancel",
+                /**
+                 * Fires when the confirmation dialog is drawn.
+                 * @event drawConfirm
+                 */
+                "drawConfirm",
+                /**
+                 * Fires when the save as dialog is drawn.
+                 * @event drawSaveas
+                 */
+                "drawSaveas",
+                /**
+                 * Fires when the save state of a tab changes.
+                 * @event tabSavingState
+                 * @param {Object} e
+                 * @param {Tab}    e.tab
+                 */
+                "tabSavingState"
+            ],
+            
             /**
              * Saves the contents of a tab to disk using `fs.writeFile`
-             * @param {Tab} tab the pane tab to save
-             * @param {Object} options
-             * @param {Object} e
-             *     {Boolean} force      whether to save no matter what conditions
-             *     {String}  path       the new path of the file (otherwise tab.path is used)
-             *     {Boolean} silentsave whether to show an error message in the UI when a save fails
-             *     {Number}  timeout    the time any success state is shown in the UI
-             * @param callback(err) {Function} called after the file is saved or had an error
-             * @event beforeSave Fires before the file is being saved
-             *   cancellable: true
-             * @param {Object} e
-             *     {String}   path
-             *     {Document} document
-             *     {Object}   options
-             * @event afterSave Fires after a file is saved or had an error
-             * @param {Object} e
-             *     {String}   path
-             *     {Error}    err
-             *     {Document} document
-             *     {Object}   options
+             * @param {Tab}      tab                   The tab to save
+             * @param {Object}   options
+             * @param {String}   options.path          The new path of the file (otherwise tab.path is used)
+             * @param {Boolean}  [options.force]       Species whether to save no matter what conditions
+             * @param {Boolean}  [options.silentsave]  Species whether to show an error message in the UI when a save fails
+             * @param {Number}   [options.timeout]     the time any success state is shown in the UI
+             * @param {Function} callback              Called after the file is saved or had an error
+             * @param {Error}    callback.err          The error object, if an error occured during saving.
+             * @fires beforeSave
+             * @fires afterSave
              */
             save : save,
             
             /**
              * Saves a file and allows the user to choose the path
-             * @param {Tab}     tab          the pane tab to save
-             * @param {Function} callback(err) called after the file is saved or had an error
+             * @param {Tab}      tab           The tab to save
+             * @param {Function} callback      Called after the file is saved or had an error
+             * @param {Error}    callback.err  The error object, if an error occured during saving.
              */
             saveAs : saveAs,
             
             /**
              * Reverts the value of a tab / document back to the value that is on disk
-             * @param {Tab} tab the pane tab to save
+             * @param {Tab} tab the tab to save
              */
             revertToSaved : revertToSaved,
             
@@ -950,20 +1025,29 @@ define(function(require, exports, module) {
             
             /**
              * Saves a set of pages by asking the user for confirmation
-             * @param {Array}    pages                 the pages to save
-             * @param {Function} callback(err, result) called each time the user 
-             *   clicks a button in the confirm dialog. The `result` variable
-             *   is set with one of the following constants:
-             *      save.YESTOALL
-             *      save.NOTOALL
-             *      save.YES
-             *      save.NO
-             *      save.CANCEL
+             * @param {Tab[]}    tabs             The tabs to save
+             * @param {Function} callback         Called each time the user 
+             *   clicks a button in the confirm dialog. 
+             * @param {Error}    callback.err     The error object, if an error occured during saving.
+             * @param {Number}   callback.result  Specifies which button the 
+             *   user has clicked. This corresponds to one of the following
+             *   constants:
+             * 
+             * <table>
+             * <tr><td>save.YESTOALL</td><td>   The user saved all remaining tabs.</td></tr>
+             * <tr><td>save.NOTOALL</td><td>    The user saved none of the remaining tabs.</td></tr>
+             * <tr><td>save.YES</td><td>        The user saved the last tab in the list.</td></tr>
+             * <tr><td>save.NO</td><td>         The user did not save the last tab in the list.</td></tr>
+             * <tr><td>save.CANCEL</td><td>     The user cancelled the saving of the tabs.</td></tr>
+             * </table>
              */
             saveAllInteractive : saveAllInteractive,
             
             /**
-             * 
+             * Sets the saving state of a tab
+             * @param {Tab}    tab    The tab to set the state of.
+             * @param {String} state  The saving state. This argument has three
+             * possible values: "saving", "saved", "offline"
              */
             setSavingState : setSavingState
         });

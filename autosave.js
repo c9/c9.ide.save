@@ -20,7 +20,7 @@ define(function(require, exports, module) {
         var tooltip  = imports.tooltip;
         var tabs     = imports.tabManager;
         var prefs    = imports.preferences;
-        // var stripws  = imports.stripws;
+        var stripws  = imports.stripws;
         
         /***** Initialization *****/
         
@@ -81,7 +81,7 @@ define(function(require, exports, module) {
                     
                     clearTimeout(docChangeTimeout);
                     docChangeTimeout = setTimeout(function() {
-                        // stripws.disable();
+                        stripws.disable();
                         saveTab(tab);
                     }, CHANGE_TIMEOUT);
                 }, plugin);
@@ -161,7 +161,7 @@ define(function(require, exports, module) {
                 return;
     
             save.save(tab, { silentsave: true, timeout: 1 }, function() {
-                // stripws.enable();
+                stripws.enable();
             });
         }
     
