@@ -1,9 +1,3 @@
-/*
- * Autosave Module for the Cloud9 IDE
- *
- * @author Sergi Mansilla <sergi@c9.io>
- * @copyright 2012, Ajax.org B.V.
- */
 define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "settings", "ui", "layout", "tooltip",
@@ -189,6 +183,10 @@ define(function(require, exports, module) {
         /***** Register and define API *****/
         
         /**
+         * Implements auto save for Cloud9 IDE. When the user enables autosave
+         * the contents of files are automatically saved about 500ms after the
+         * change is made.
+         * @singleton
          **/
         plugin.freezePublicAPI({ });
         
