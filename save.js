@@ -36,8 +36,6 @@ define(function(require, exports, module) {
         var trSaveAs, winSaveAs, fileDesc, txtSaveAs, lblPath, btnCreateFolder;
         var chkShowFiles;
         
-        var saveBuffer = {};
-        
         var SAVING   = 0;
         var SAVED    = 1;
         var OFFLINE  = 2;
@@ -561,11 +559,11 @@ define(function(require, exports, module) {
     
             // Check if we're already saving!
             if (!options.force) {
-                if (saveBuffer[path]) {
-                    saveBuffer[path].stack.push([tab, options, callback]);
+                if (doc.meta.$saveBuffer) {
+                    doc.meta.$saveBuffer.push([tab, options, callback]);
                     return;
                 }
-                saveBuffer[path] = {stack: []};
+                doc.meta.$saveBuffer = [];
             }
             
             setSavingState(tab, "saving");
@@ -606,7 +604,7 @@ define(function(require, exports, module) {
                 fnProgress({ complete: true });
                 fs.off("progress.upload", fnProgress);
                 
-                checkBuffer(path);
+                checkBuffer(doc);
             });
             fs.on("progressUpload", fnProgress);
     
@@ -615,18 +613,21 @@ define(function(require, exports, module) {
         
         function progress(e){
             e.upload = true;
-            this.document.progress(e)
+            
+            var doc = this.document;
+            doc.progress(e);
+            doc.meta.$saving = Date.now();
         }
         
-        function checkBuffer(path){
-            if (saveBuffer[path]) {
-                var next = saveBuffer[path].stack.shift();
+        function checkBuffer(doc){
+            if (doc.meta.$saveBuffer) {
+                var next = doc.meta.$saveBuffer.shift();
                 if (next) {
                     (next[1] || (next[1] = {})).force = true;
                     save.apply(window, next);
                 }
                 else
-                    delete saveBuffer[path];
+                    delete doc.meta.$saveBuffer;
             }
         }
     
@@ -672,8 +673,8 @@ define(function(require, exports, module) {
             var isReplace = false;
             
             // check if we're already saving!
-            if (saveBuffer[path]) {
-                saveBuffer[path].stack.push([tab]);
+            if (doc.meta.$saveBuffer) {
+                doc.meta.$saveBuffer.push([tab]);
                 return;
             }
     
@@ -766,7 +767,13 @@ define(function(require, exports, module) {
             clearTimeout(pageTimers[tab.name]);
             
             tab.className.remove("saving", "saved", "error");
-            tab.document.meta.saving = state;
+            
+            var doc = tab.document;
+            clearTimeout(doc.meta.$saveTimer);
+            if (state == "saving")
+                doc.meta.$saving = Date.now();
+            else
+                delete doc.meta.$saving;
             
             if (state == "saving") {
                 btnSave.show();
@@ -778,12 +785,23 @@ define(function(require, exports, module) {
                 btnSave.setCaption("Saving");
                 tab.className.add("saving");
                 
-                // Error if file isn't saved after 30 seconds
-                // @TODO Rewrite this to check the progress event of fs
-                // stateTimer = setTimeout(function(){
-                //     setSavingState(tab, "offline");
-                //     checkBuffer(tab.path);
-                // }, 60000);
+                // Error if file isn't saved after 30 seconds and no progress
+                // event happened
+                (function testSaveTimeout(){
+                    doc.meta.$saveTimer = setTimeout(function(){
+                        if (!doc.meta.$saving) return;
+                        
+                        // If we haven't seen any activity in the last 30secs
+                        // lets call for a timeout
+                        if (Date.now() - doc.meta.$saving > 30000) {
+                            setSavingState(tab, "offline");
+                            checkBuffer(tab.document);
+                        }
+                        // Else wait another 30 secs
+                        else
+                            testSaveTimeout();
+                    }, 30000);
+                })();
             }
             else if (state == "saved") {
                 btnSave.show();
@@ -808,7 +826,6 @@ define(function(require, exports, module) {
                         saveStatus.style.display = "none";
                         tab.className.remove("saved");
                     }
-                    delete tab.document.meta.saving;
                     emit("tabSavingState", { tab: tab });
                 }, timeout || 500);
             }
@@ -845,15 +862,20 @@ define(function(require, exports, module) {
             btnYesAll && btnYesAll.disable();
             btnSaveYes && btnSaveYes.disable();
             
-            // Set all buffers that are saving to an error state
-            for (var path in saveBuffer) {
-                var tab = tabs.findTab(path);
-                if (tab) 
+            tabs.getTabs().forEach(function(tab){
+                if (tab.document.meta.$saveBuffer) {
+                    // Set tab in error state
                     setSavingState(tab, "offline");
-            }
-
-            // Clear the save buffers to enable easy saving of all files
-            saveBuffer = {};
+                    
+                    // Call callback
+                    tab.document.meta.$saveBuffer.forEach(function(item){
+                        if (item[2])
+                            item[2](new Error("Disabled Save Plugin"));
+                    });
+                    
+                    delete tab.document.meta.$saveBuffer;
+                }
+            });
         });
         plugin.on("unload", function(){
             loaded = false;
