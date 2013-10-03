@@ -542,10 +542,13 @@ define(function(require, exports, module) {
             // If document is unloaded return
             if (!doc.loaded)
                 return;
+            
+            var value = doc.value;
     
             if (emit("beforeSave", { 
                 path     : path,
                 document : doc,
+                value    : value,
                 options  : options
             }) === false)
                 return;
@@ -574,7 +577,7 @@ define(function(require, exports, module) {
             var bookmark = doc.undoManager.position;
             
             var fnProgress = progress.bind(tab);
-            fs.writeFile(path, doc.value, function(err){
+            fs.writeFile(path, value, function(err){
                 if (err) {
                     if (!options.silentsave) {
                         layout.showError("Failed to save document. "
@@ -934,6 +937,7 @@ define(function(require, exports, module) {
                  * @param {Object}   e
                  * @param {String}   e.path      The path of the file that to be saved.
                  * @param {Document} e.document  The document object that contains the file contents.
+                 * @param {String}   e.value     The value of the document that is to be saved.
                  * @param {Object}   e.options   The options passed to the {@link #save} method.
                  * @cancellable
                  */
