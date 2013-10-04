@@ -3,7 +3,7 @@
 define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "util", "fs", "layout", "commands", "tree",
-        "menus", "settings", "ui", "tabManager", "fs.cache"
+        "menus", "settings", "ui", "tabManager", "fs.cache", "dialog.question"
     ];
     main.provides = ["save"];
     return main;
@@ -21,10 +21,10 @@ define(function(require, exports, module) {
         var tabs     = imports.tabManager;
         var tree     = imports.tree;
         var fsCache  = imports["fs.cache"];
+        var question = imports["dialog.question"];
         
         var css           = require("text!./save.css");
         var saveAsMarkup  = require("text!./saveas.xml");
-        var confirmMarkup = require("text!./confirm.xml");
         var basename      = require("path").basename;
         var dirname       = require("path").dirname ;
 
@@ -34,9 +34,8 @@ define(function(require, exports, module) {
         var plugin = new Plugin("Ajax.org", main.consumes);
         var emit   = plugin.getEmitter();
         
-        var btnSave, winCloseConfirm, btnYesAll, btnNoAll, btnSaveAsCancel;
-        var btnSaveCancel, btnSaveYes, btnSaveNo, saveStatus, btnSaveAsOK;
-        var trSaveAs, winSaveAs, fileDesc, txtSaveAs, lblPath, btnCreateFolder;
+        var btnSave, btnSaveAsCancel, saveStatus, btnSaveAsOK;
+        var trSaveAs, winSaveAs, txtSaveAs, lblPath, btnCreateFolder;
         var chkShowFiles;
         
         var SAVING   = 0;
@@ -138,48 +137,38 @@ define(function(require, exports, module) {
                 if (emit("beforeWarn", { tab : tab }) === false)
                     return;
 
-                drawConfirm();
-
                 // Activate tab to be warned for
                 tabs.activateTab(tab);
-
-                winCloseConfirm.tab = tab;
-                winCloseConfirm.all  = CANCEL;
-                winCloseConfirm.show();
-
-                fileDesc.replaceMarkup("<div><h3>Save " 
-                    + ui.escapeXML(tab.path) + "?</h3><div>This file has "
-                    + "unsaved changes. Your changes will be lost if you don't "
-                    + "save them.</div></div>", { "noLoadingMsg": false });
-
-                winCloseConfirm.on("hide", function onHide(){
-                    if (winCloseConfirm.all != CANCEL) {
-                        function done(){
-                            var tab = winCloseConfirm.tab;
-                            if (!tab) return;
-
-                            delete winCloseConfirm.tab;
-
-                            emit("dialogClose", { tab: tab });
-                            
-                            tab.document.meta.$ignoreSave = true;
-                            tab.close();
-                            delete tab.document.meta.$ignoreSave;
-                        };
-
-                        if (winCloseConfirm.all == YES)
-                            save(winCloseConfirm.tab, {silentsave: true}, done);
-                        else
-                            done();
-                    }
-                    else
-                        emit("dialogCancel", { tab: tab });
-
-                    winCloseConfirm.off("hide", onHide);
-                });
-
-                btnYesAll.hide();
-                btnNoAll.hide();
+                
+                function close(){
+                    // Close file without a check
+                    tab.document.meta.$ignoreSave = true;
+                    tab.close();
+                    
+                    // Remove the flag for the case that the doc is restored
+                    delete tab.document.meta.$ignoreSave;
+                    
+                    emit("dialogClose", { tab: tab });
+                }
+                
+                question(
+                    "Save this file?",
+                    "Save " + ui.escapeXML(tab.path) + "?",
+                    "This file has unsaved changes. Your changes will be lost "
+                        + "if you don't save them.",
+                    function(all, tab){ // Yes
+                        save(tab, {silentsave: true}, close);
+                    },
+                    function(all, cancel, tab){ // No
+                        if (cancel) {
+                            emit("dialogCancel", { tab: tab });
+                        }
+                        else {
+                            close();
+                        }
+                    },
+                    { cancel: true, metadata: tab }
+                );
 
                 return false;
             }, plugin);
@@ -229,53 +218,6 @@ define(function(require, exports, module) {
         }
         
         var drawn = 0;
-        function drawConfirm(){
-            if (drawn & 1) return;
-            drawn = drawn | 1;
-            
-            ui.insertMarkup(null, confirmMarkup, plugin);
-            
-            winCloseConfirm = plugin.getElement("winCloseConfirm");
-            btnYesAll       = plugin.getElement("btnYesAll");
-            btnNoAll        = plugin.getElement("btnNoAll");
-            btnSaveYes      = plugin.getElement("btnSaveYes");
-            btnSaveNo       = plugin.getElement("btnSaveNo");
-            btnSaveCancel   = plugin.getElement("btnSaveCancel");
-            fileDesc        = plugin.getElement("fileDesc");
-            
-            btnYesAll.on("click", function(){
-                winCloseConfirm.all = YESTOALL;
-                winCloseConfirm.hide();
-            });
-            btnNoAll.on("click", function(){
-                winCloseConfirm.all = NOTOALL;
-                winCloseConfirm.hide();
-            });
-            btnSaveYes.on("click", function(){
-                winCloseConfirm.all = YES;
-                winCloseConfirm.hide();
-            });
-            btnSaveNo.on("click", function(){
-                winCloseConfirm.all = NO;
-                winCloseConfirm.hide();
-            });
-            btnSaveCancel.on("click", function(){
-                winCloseConfirm.all = CANCEL;
-                winCloseConfirm.hide();
-            });
-            
-            winCloseConfirm.on("keydown", function(){
-                if (event.keyCode == 27)
-                    btnSaveCancel.dispatchEvent('click', {htmlEvent: {}});
-                if (event.keyCode == 89)
-                    btnSaveYes.dispatchEvent('click', {htmlEvent: {}});
-                else if (event.keyCode == 78)
-                    btnSaveNo.dispatchEvent('click', {htmlEvent: {}});
-            })
-            
-            emit("drawConfirm");
-        }
-        
         function drawSaveAs(){
             if (drawn & 2) return;
             drawn = drawn | 2;
@@ -326,7 +268,7 @@ define(function(require, exports, module) {
                 var fooPath = folder.getAttribute("path");
                 if (folder.getAttribute("type") != "folder" 
                   && folder.tagName != "folder") {
-                    var fooPath = fooPath.split("/");
+                    fooPath = fooPath.split("/");
                     txtSaveAs.setValue(fooPath.pop());
                     fooPath = fooPath.join("/");
                 }
@@ -477,48 +419,50 @@ define(function(require, exports, module) {
             if (!count) callback();
         }
     
-        function saveAllInteractive(pages, callback){
-            drawConfirm();
-    
-            winCloseConfirm.all = NO;
+        function saveAllInteractive(tabs, callback){
+            var state   = NO;
+            var counter = tabs.length;
             
-            var total = pages.length, counter = 0;
-            ui.asyncForEach(pages, function(tab, next) {
-                if (!tab.document.undoManager.isAtBookmark()) {
-                    if (winCloseConfirm.all == YESTOALL)
-                        save(tab, null, function(){});
-    
-                    if (winCloseConfirm.all < 1) // YESTOALL, NOTOALL, CANCEL
-                        return next();
-    
-                    // Activate tab
-                    tabs.activateTab(tab);
-                    
-                    fileDesc.replaceMarkup("<div><h3>Save " 
-                        + ui.escapeXML(tab.path) + "?</h3><div>This file has "
-                        + "unsaved changes. Your changes will be lost if you don't "
-                        + "save them.</div></div>", { "noLoadingMsg": false });
-                    
-                    winCloseConfirm.tab = tab;
-                    winCloseConfirm.show();
-                    winCloseConfirm.on("hide", function onHide(){
-                        if (Math.abs(winCloseConfirm.all) == YES)
-                            save(tab, null, function(){});
-    
-                        winCloseConfirm.off("hide", onHide);
-                        next();
-                    });
-    
-                    btnYesAll.setProperty("visible", counter < total - 1);
-                    btnNoAll.setProperty("visible", counter < total - 1);
+            tabs = tabs.filter(function(tab){
+                return !tab.document.undoManager.isAtBookmark();
+            });
+            
+            ui.asyncForEach(tabs, function(tab, next) {
+                counter--;
+                
+                // Yes to all saves all files
+                if (state == YESTOALL) {
+                    save(tab, null, function(){});
+                    return next();
                 }
-                else
-                    next();
+                
+                // Activate tab
+                tabs.activateTab(tab);
+                
+                question(
+                    "Save this file?",
+                    "Save " + ui.escapeXML(tab.path) + "?",
+                    "This file has unsaved changes. Your changes will be lost "
+                        + "if you don't save them.",
+                    function(all, tab){ // Yes
+                        state = all ? YESTOALL : YES;
+                        save(tab, null, function(){});
+                        next();
+                    },
+                    function(all, cancel, tab){ // No
+                        state = all ? NOTOALL : NO;
                     
-                counter++;
+                        // If cancel or no to all, exit
+                        if (cancel || all)
+                            callback(state);
+                        else
+                            next();
+                    },
+                    { all: counter > 1, cancel: true, metadata: tab }
+                );
             },
             function() {
-                callback(winCloseConfirm.all);
+                callback(state);
             });
         }
     
@@ -859,14 +803,10 @@ define(function(require, exports, module) {
         plugin.on("enable", function(){
             winSaveAs && winSaveAs.enable();
             btnSave && btnSave.enable();
-            btnYesAll && btnYesAll.enable();
-            btnSaveYes && btnSaveYes.enable();
         });
         plugin.on("disable", function(){
             winSaveAs && winSaveAs.disable();
             btnSave && btnSave.disable();
-            btnYesAll && btnYesAll.disable();
-            btnSaveYes && btnSaveYes.disable();
             
             tabs.getTabs().forEach(function(tab){
                 if (tab.document.meta.$saveBuffer) {
@@ -980,11 +920,6 @@ define(function(require, exports, module) {
                  * @param {Tab}    e.tab
                  */
                 "dialogCancel",
-                /**
-                 * Fires when the confirmation dialog is drawn.
-                 * @event drawConfirm
-                 */
-                "drawConfirm",
                 /**
                  * Fires when the save as dialog is drawn.
                  * @event drawSaveas
