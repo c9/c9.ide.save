@@ -2,41 +2,31 @@
 
 define(function(require, exports, module) {
     main.consumes = [
-        "Plugin", "c9", "util", "fs", "layout", "commands", "tree",
-        "menus", "settings", "ui", "tabManager", "fs.cache", "dialog.question"
+        "Plugin", "c9", "fs", "layout", "commands", "menus", "settings", "ui", 
+        "tabManager", "dialog.question", "dialog.filesave", "dialog.fileoverwrite"
     ];
     main.provides = ["save"];
     return main;
 
     function main(options, imports, register) {
-        var c9       = imports.c9;
-        var util     = imports.util;
-        var Plugin   = imports.Plugin;
-        var settings = imports.settings;
-        var ui       = imports.ui;
-        var commands = imports.commands;
-        var menus    = imports.menus;
-        var fs       = imports.fs;
-        var layout   = imports.layout;
-        var tabs     = imports.tabManager;
-        var tree     = imports.tree;
-        var fsCache  = imports["fs.cache"];
-        var question = imports["dialog.question"];
-        
-        var css           = require("text!./save.css");
-        var saveAsMarkup  = require("text!./saveas.xml");
-        var basename      = require("path").basename;
-        var dirname       = require("path").dirname ;
-
+        var c9         = imports.c9;
+        var Plugin     = imports.Plugin;
+        var settings   = imports.settings;
+        var ui         = imports.ui;
+        var commands   = imports.commands;
+        var menus      = imports.menus;
+        var fs         = imports.fs;
+        var layout     = imports.layout;
+        var tabs       = imports.tabManager;
+        var question   = imports["dialog.question"].show;
+        var showSaveAs = imports["dialog.filesave"].show;
         
         /***** Initialization *****/
         
         var plugin = new Plugin("Ajax.org", main.consumes);
         var emit   = plugin.getEmitter();
         
-        var btnSave, btnSaveAsCancel, saveStatus, btnSaveAsOK;
-        var trSaveAs, winSaveAs, txtSaveAs, lblPath, btnCreateFolder;
-        var chkShowFiles;
+        var btnSave, saveStatus;
         
         var SAVING   = 0;
         var SAVED    = 1;
@@ -215,181 +205,6 @@ define(function(require, exports, module) {
                 else 
                     plugin.disable();
             });
-        }
-        
-        var drawn = 0;
-        function drawSaveAs(){
-            if (drawn & 2) return;
-            drawn = drawn | 2;
-            
-            // Import the CSS
-            ui.insertCss(css, plugin);
-            
-            // Create UI elements
-            ui.insertMarkup(null, saveAsMarkup, plugin);
-        
-            winSaveAs       = plugin.getElement("winSaveAs");
-            trSaveAs        = plugin.getElement("trSaveAs");
-            btnSaveAsCancel = plugin.getElement("btnSaveAsCancel");
-            btnSaveAsOK     = plugin.getElement("btnSaveAsOK");
-            lblPath         = plugin.getElement("lblPath");
-            txtSaveAs       = plugin.getElement("txtSaveAs");
-            btnCreateFolder = plugin.getElement("btnCreateFolder");
-            chkShowFiles    = plugin.getElement("chkShowFiles");
-            
-            chkShowFiles.on("onafterchange", function(){
-                if (chkShowFiles.checked)
-                    ui.setStyleClass(trSaveAs.$ext, "", ["hidefiles"]);
-                else
-                    ui.setStyleClass(trSaveAs.$ext, "hidefiles");
-            });
-            btnCreateFolder.on("click", function(){ 
-                tree.createFolder("New Folder", false, function(){}, trSaveAs);
-            });
-            btnSaveAsCancel.on("click", function(){ winSaveAs.hide() });
-            btnSaveAsOK.on("click", function(){ confirmSaveAs(winSaveAs.tab) });
-            txtSaveAs.on("keydown", function(e){ 
-                if (e.keyCode == 13)
-                    confirmSaveAs(winSaveAs.tab);
-            });
-    
-            winSaveAs.on("show", function(){
-                expandTree();
-            });
-            // winSaveAs.on("hide", function(){
-            //     if (winSaveAs.tab) {
-            //         winSaveAs.tab.unload();
-            //         winSaveAs.tab.document.undoManager.reset();
-            //         delete winSaveAs.tab;
-            //     }
-            // });
-            
-            function chooseSaveAsFolder(folder) {
-                var fooPath = folder.getAttribute("path");
-                if (folder.getAttribute("type") != "folder" 
-                  && folder.tagName != "folder") {
-                    fooPath = fooPath.split("/");
-                    txtSaveAs.setValue(fooPath.pop());
-                    fooPath = fooPath.join("/");
-                }
-                lblPath.setProperty('caption', fooPath);
-            }
-        
-            trSaveAs.on("afterselect", function(){
-                chooseSaveAsFolder(trSaveAs.selected);
-            });
-            trSaveAs.on("afterchoose", function(){
-                chooseSaveAsFolder(trSaveAs.selected)
-            });
-    
-            // Decorate tree with fs actions (copied from tree - should this be a lib?)
-            trSaveAs.setAttribute("model", fsCache.model);
-            
-            // Begin Hack to make tree work well with fsCache managing the model
-            trSaveAs.$setLoadStatus = function(xmlNode, state, remove){
-                // state: loading, loaded, potential, null
-                var to = remove ? "" : state;
-                if (xmlNode.getAttribute("status") != to) {
-                    // Carefully assuming that a change to potential, 
-                    // doesnt require a UI. Needed for preventing recursion
-                    // when delete fails in an expanded tree
-                    if (to == "potential")
-                        xmlNode.setAttribute("status", to)
-                    else
-                        ui.xmldb.setAttribute(xmlNode, "status", to)
-                }
-            };
-        
-            trSaveAs.$hasLoadStatus = function(xmlNode, state, unique){
-                if (!xmlNode)
-                    return false;
-                return xmlNode.getAttribute("status") == state;
-            };
-            // End Hack
-            
-            // Rename
-            trSaveAs.on("beforerename", function(e){
-                if (!c9.has(c9.STORAGE))
-                    return false;
-    
-                if (trSaveAs.$model.data.firstChild == trSaveAs.selected) {
-                    util.alert(
-                        "Cannot rename project folder",
-                        "Unable to rename to project folder",
-                        "The project folder name is related to the url of your project and cannot be renamed here."
-                    );
-                    return false;
-                }
-                
-                var node = e.args[0];
-                var name = e.args[1];
-                
-                // Returning false from this function will cancel the rename. We do this
-                // when the name to which the file is to be renamed contains invalid
-                // characters
-                var match = name.match(/^(?:\w|[.])(?:\w|[ .\-])*$/);
-                if (!match || match[0] != name) {
-                    util.alert(
-                        "Invalid filename",
-                        "Unable to rename to " + name,
-                        "Names are only allowed alfanumeric characters, space, "
-                        + "-, _ and . Use the terminal to rename to alternate names."
-                    );
-                    return false;
-                }
-                
-                // check for a path with the same name, which is not allowed to rename to:
-                var path = node.getAttribute("path"),
-                    newpath = path.replace(/^(.*\/)[^\/]+$/, "$1" + name).toLowerCase(); //@todo check if lowercase isn't wrong
-    
-                var list = fsCache.findNodes(newpath);
-                if (list.length > (list.indexOf(node) > -1 ? 1 : 0)) {
-                    util.alert("Error", "Unable to Rename",
-                        "That name is already taken. Please choose a different name.");
-                    trSaveAs.getActionTracker().undo();
-                    return false;
-                }
-                
-                fs.rename(path, newpath, function(err, success) { });
-                
-                return false;
-            }, plugin);
-            
-            // Remove
-            trSaveAs.on("beforeremove", function(e){
-                if (!c9.has(c9.STORAGE))
-                    return false;
-                
-                var selection = trSaveAs.getSelection();
-                if (selection.indexOf(fsCache.model.data.firstChild) > -1) {
-                    util.alert(
-                        "Cannot remove project folder",
-                        "Unable to remove to project folder",
-                        "The project folder can not be deleted. To delete this project go to the dashboard."
-                    );
-                    return false;
-                }
-                
-                return util.removeInteractive(selection, function(file){
-                    if (file.tagName == "folder")
-                        fs.rmdir(file.getAttribute("path"), {recursive: true}, function(){});
-                    else
-                        fs.rmfile(file.getAttribute("path"), function(){});
-                });
-            });
-            
-            // Insert
-            trSaveAs.on("beforeinsert", function(e){
-                var xmlNode = e.xmlNode;
-                fs.readdir(xmlNode.getAttribute("path"), function(err){
-                    if (err) return;
-
-                    expand(xmlNode);
-                });
-                return false;
-            })
-        
-            emit("drawSaveas");
         }
         
         /***** Methods *****/
@@ -588,129 +403,39 @@ define(function(require, exports, module) {
             if (typeof tab.path != "string")
                 return;
     
-            drawSaveAs();
-    
-            txtSaveAs.setValue(basename(tab.path));
-            winSaveAs.page = tab;
-            winSaveAs.show();
-            
-            // HACK: setProperty doesn't immediately reflect the UI state - needs to be delayed
-            setTimeout(function () {
-                lblPath.setProperty("caption", dirname(tab.path) + "/");
-            });
+            showSaveAs("Save As", tab.path, 
+                function(path, exists, done){
+                    var oldPath = tab.path;
+                    
+                    if (path == oldPath || !exists)
+                        return doSave();
 
-            winSaveAs.on("hide", function listen(){
-                if (winSaveAs.callback) {
-                    var err = new Error("User Cancelled Save");
-                    err.code = "EUSERCANCEL";
-                    winSaveAs.callback(err);
-                }
-                winSaveAs.off("hide", listen);
-            });
-            
-            winSaveAs.callback = callback;
-        }
-    
-        // Called by the UI 'confirm' button in winSaveAs.
-        function confirmSaveAs(tab) {
-            if (!tab)
-                return;
-            
-            var path    = tab.path;
-            var doc     = tab.document;
-            var newPath = lblPath.getProperty("caption") + txtSaveAs.getValue();
-    
-            var isReplace = false;
-            
-            // check if we're already saving!
-            if (doc.meta.$saveBuffer) {
-                doc.meta.$saveBuffer.push([tab]);
-                return;
-            }
-    
-            function doSave() {
-                var callback = winSaveAs.callback;
-                delete winSaveAs.callback;
-                
-                winSaveAs.hide();
-                save(tab, { path: newPath, replace: isReplace }, function(){});
-    
-                if (window.winConfirm) {
-                    winConfirm.hide();
-    
-                    if (window.btnConfirmOk && btnConfirmOk.caption == "Yes")
-                        btnConfirmOk.setCaption("Ok");
-                }
-                
-                if (callback)
-                    callback();
-            };
-    
-            function doCancel() {
-                if (window.winConfirm && btnConfirmOk.caption == "Yes")
-                    btnConfirmOk.setCaption("Ok");
-            };
-            
-            if (path !== newPath || doc.meta.newfile) {
-                fs.exists(newPath, function (exists, stat) {
-                    if (exists) {
-                        if (stat 
-                          && (/(directory|folder)$/.test(stat.mime) || stat.link 
-                          && /(directory|folder)$/.test(stat.linkStat.mime))) {
-                            var node = fsCache.findNode(newPath);
-                            trSaveAs.select(node);
-                            if (trSaveAs.selected == node) {
-                                txtSaveAs.setValue("");
-                                expand(node);
-                            }
-                            return;
-                        }
-                        
-                        var name = newPath.match(/\/([^\/]*)$/)[1];
-    
-                        isReplace = true;
-                        util.confirm(
-                            "A file with this name already exists",
-                            "\"" + name + "\" already exists, do you want to replace it?",
-                            "A file with the same name already exists at this location." +
-                            "Selecting Yes will overwrite the existing document.",
-                            doSave,
-                            doCancel);
-                        btnConfirmOk.setCaption("Yes");
+                    question(
+                        "A file with this name already exists",
+                        "\"" + name + "\" already exists, do you want to replace it?",
+                        "A file with the same name already exists at this location." +
+                        "Selecting Yes will overwrite the existing document.",
+                        doSave,
+                        function(){
+                            done()
+                            onCancel();
+                        });
+                    
+                    function doSave(){
+                        done();
+                        save(tab, { path: path }, callback);
                     }
-                    else {
-                        doSave();
-                    }
-                });
-            }
-            else {
-                doSave();
+                }, 
+                onCancel);
+            
+            function onCancel(){
+                var err = new Error("User Cancelled Save");
+                err.code = "EUSERCANCEL";
+                err.tab  = tab;
+                callback(err);
             }
         }
         
-        function expand(xmlNode){
-            var htmlNode = ui.xmldb.getHtmlNode(xmlNode, trSaveAs);
-            if (htmlNode)
-                trSaveAs.slideOpen(null, xmlNode, true);
-        }
-        
-        function expandTree(){
-            function expand(){
-                var tab = tabs.focussedTab;
-                if (!tab) return;
-                
-                // var path  = tab.path
-                // var isNew = tab.document.meta.newfile
-                
-                trSaveAs.slideOpen(null, fsCache.findNode("/"));
-            }
-    
-            if (fsCache.findNode("/").childNodes.length)
-                expand();
-            else
-                trSaveAs.on("afterload", expand);
-        }
-    
         var stateTimer = null, pageTimers = {};
         function setSavingState(tab, state, timeout) {
             clearTimeout(stateTimer);
@@ -801,11 +526,9 @@ define(function(require, exports, module) {
             load();
         });
         plugin.on("enable", function(){
-            winSaveAs && winSaveAs.enable();
             btnSave && btnSave.enable();
         });
         plugin.on("disable", function(){
-            winSaveAs && winSaveAs.disable();
             btnSave && btnSave.disable();
             
             tabs.getTabs().forEach(function(tab){
@@ -825,7 +548,6 @@ define(function(require, exports, module) {
         });
         plugin.on("unload", function(){
             loaded = false;
-            drawn  = 0;
         });
         
         /***** Register and define API *****/
