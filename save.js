@@ -371,7 +371,7 @@ define(function(require, exports, module) {
                 
                 checkBuffer(doc);
             });
-            fs.on("progressUpload", fnProgress);
+            fs.on("uploadProgress", fnProgress);
     
             return false;
         }
