@@ -660,7 +660,7 @@ define(function(require, exports, module) {
              * Saves the contents of a tab to disk using `fs.writeFile`
              * @param {Tab}      tab                   The tab to save
              * @param {Object}   options
-             * @param {String}   options.path          The new path of the file (otherwise tab.path is used)
+             * @param {String}   [options.path]        The new path of the file (otherwise tab.path is used)
              * @param {Boolean}  [options.force]       Species whether to save no matter what conditions
              * @param {Boolean}  [options.silentsave]  Species whether to show an error message in the UI when a save fails
              * @param {Number}   [options.timeout]     the time any success state is shown in the UI
