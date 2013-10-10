@@ -21,6 +21,9 @@ define(function(require, exports, module) {
         var question   = imports["dialog.question"].show;
         var showSaveAs = imports["dialog.filesave"].show;
         
+        var basename   = require("path").basename;
+        var dirname    = require("path").dirname;
+        
         /***** Initialization *****/
         
         var plugin = new Plugin("Ajax.org", main.consumes);
@@ -71,7 +74,7 @@ define(function(require, exports, module) {
                 bindKey : {mac: "Command-Shift-S", win: "Ctrl-Shift-S"},
                 isAvailable : available,
                 exec: function () {
-                    saveAs();
+                    saveAs(null, function(){});
                 }
             }, plugin);
     
@@ -412,14 +415,15 @@ define(function(require, exports, module) {
 
                     question(
                         "A file with this name already exists",
-                        "\"" + name + "\" already exists, do you want to replace it?",
-                        "A file with the same name already exists at this location." +
-                        "Selecting Yes will overwrite the existing document.",
+                        path + " already exists, do you want to replace it?",
+                        "A file with the same name already exists in " + dirname(path) 
+                        + ". Click Yes to overwrite the existing document.",
                         doSave,
                         function(){
                             done()
                             onCancel();
-                        });
+                        },
+                        { queue: false });
                     
                     function doSave(){
                         done();
