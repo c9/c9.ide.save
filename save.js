@@ -98,7 +98,7 @@ define(function(require, exports, module) {
             }, plugin);
     
             tabs.on("tabBeforeClose", function(e) {
-                var tab        = e.tab;
+                var tab         = e.tab;
                 var undoManager = tab.document.undoManager;
                 
                 // Won't save documents that don't support paths
@@ -133,13 +133,15 @@ define(function(require, exports, module) {
                 // Activate tab to be warned for
                 tabs.activateTab(tab);
                 
-                function close(){
-                    // Close file without a check
-                    tab.document.meta.$ignoreSave = true;
-                    tab.close();
-                    
-                    // Remove the flag for the case that the doc is restored
-                    delete tab.document.meta.$ignoreSave;
+                function close(err){
+                    if (!err || err.code != "EUSERCANCEL") {
+                        // Close file without a check
+                        tab.document.meta.$ignoreSave = true;
+                        tab.close();
+                        
+                        // Remove the flag for the case that the doc is restored
+                        delete tab.document.meta.$ignoreSave;
+                    }
                     
                     emit("dialogClose", { tab: tab });
                 }
@@ -406,9 +408,21 @@ define(function(require, exports, module) {
             if (typeof tab.path != "string")
                 return;
     
+            function onCancel(){
+                var err = new Error("User Cancelled Save");
+                err.code = "EUSERCANCEL";
+                err.tab  = tab;
+                callback(err);
+            }
+    
             showSaveAs("Save As", tab.path, 
                 function(path, exists, done){
                     var oldPath = tab.path;
+                    
+                    function doSave(){
+                        done();
+                        save(tab, { path: path }, callback);
+                    }
                     
                     if (path == oldPath || !exists)
                         return doSave();
@@ -424,20 +438,8 @@ define(function(require, exports, module) {
                             onCancel();
                         },
                         { queue: false });
-                    
-                    function doSave(){
-                        done();
-                        save(tab, { path: path }, callback);
-                    }
                 }, 
                 onCancel);
-            
-            function onCancel(){
-                var err = new Error("User Cancelled Save");
-                err.code = "EUSERCANCEL";
-                err.tab  = tab;
-                callback(err);
-            }
         }
         
         var stateTimer = null, pageTimers = {};
