@@ -36,7 +36,6 @@ define(function(require, exports, module) {
             prefs.add({
                 "General" : {
                     "General" : {
-                        position : 50,
                         "Enable Auto-Save" : {
                             type     : "checkbox",
                             position : 1000,
