@@ -17,7 +17,7 @@ define(function(require, exports, module) {
         var menus      = imports.menus;
         var fs         = imports.fs;
         var layout     = imports.layout;
-        var tabs       = imports.tabManager;
+        var tabManager = imports.tabManager;
         var question   = imports["dialog.question"].show;
         var showSaveAs = imports["dialog.filesave"].show;
         
@@ -48,8 +48,8 @@ define(function(require, exports, module) {
             
             function available(editor){
                 return !!editor && (c9.status & c9.STORAGE)
-                    && (!tabs.focussedTab
-                    || typeof tabs.focussedTab.path == "string");
+                    && (!tabManager.focussedTab
+                    || typeof tabManager.focussedTab.path == "string");
             }
             
             // This prevents the native save dialog to popup while being offline
@@ -97,7 +97,7 @@ define(function(require, exports, module) {
                 }
             }, plugin);
     
-            tabs.on("tabBeforeClose", function(e) {
+            tabManager.on("tabBeforeClose", function(e) {
                 var tab         = e.tab;
                 var undoManager = tab.document.undoManager;
                 
@@ -131,7 +131,7 @@ define(function(require, exports, module) {
                     return;
 
                 // Activate tab to be warned for
-                tabs.activateTab(tab);
+                tabManager.activateTab(tab);
                 
                 function close(err){
                     if (!err || err.code != "EUSERCANCEL") {
@@ -196,10 +196,10 @@ define(function(require, exports, module) {
                 command : "reverttosaved"
             }), 700, plugin);
             
-            tabs.on("focus", function(e){
+            tabManager.on("focus", function(e){
                 btnSave.setAttribute("disabled", !available(true));
             });
-            tabs.on("tabDestroy", function(e){
+            tabManager.on("tabDestroy", function(e){
                 if (e.last)
                     btnSave.setAttribute("disabled", true);
             });
@@ -215,12 +215,12 @@ define(function(require, exports, module) {
         /***** Methods *****/
         
         function revertToSaved(tab, callback){
-            tabs.reload(tab, callback);
+            tabManager.reload(tab, callback);
         }
     
         function saveAll(callback) {
             var count = 0;
-            tabs.getTabs().forEach(function (tab) {
+            tabManager.getTabs().forEach(function (tab) {
                 if (typeof tab.path != "string")
                     return;
                 
@@ -257,7 +257,7 @@ define(function(require, exports, module) {
                 }
                 
                 // Activate tab
-                tabs.activateTab(tab);
+                tabManager.activateTab(tab);
                 
                 question(
                     "Save this file?",
@@ -293,7 +293,7 @@ define(function(require, exports, module) {
         
         // `silentsave` indicates whether the saving of the file is forced by the user or not.
         function save(tab, options, callback) {
-            if (!tab && !(tab = tabs.focussedTab))
+            if (!tab && !(tab = tabManager.focussedTab))
                 return;
     
             // Optional callback, against code, but allowing for now
@@ -402,7 +402,7 @@ define(function(require, exports, module) {
         }
     
         function saveAs(tab, callback){
-            if (!tab && !(tab = tabs.focussedTab))
+            if (!tab && !(tab = tabManager.focussedTab))
                 return;
     
             if (typeof tab.path != "string")
@@ -537,7 +537,7 @@ define(function(require, exports, module) {
         plugin.on("disable", function(){
             btnSave && btnSave.disable();
             
-            tabs.getTabs().forEach(function(tab){
+            tabManager.getTabs().forEach(function(tab){
                 if (tab.document.meta.$saveBuffer) {
                     // Set tab in error state
                     setSavingState(tab, "offline");
