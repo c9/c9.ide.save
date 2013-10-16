@@ -2,42 +2,34 @@
 
 define(function(require, exports, module) {
     main.consumes = [
-        "Plugin", "c9", "util", "fs", "layout", "commands", "tree",
-        "menus", "settings", "ui", "tabManager", "fs.cache"
+        "Plugin", "c9", "fs", "layout", "commands", "menus", "settings", "ui", 
+        "tabManager", "dialog.question", "dialog.filesave", "dialog.fileoverwrite"
     ];
     main.provides = ["save"];
     return main;
 
     function main(options, imports, register) {
-        var c9       = imports.c9;
-        var util     = imports.util;
-        var Plugin   = imports.Plugin;
-        var settings = imports.settings;
-        var ui       = imports.ui;
-        var commands = imports.commands;
-        var menus    = imports.menus;
-        var fs       = imports.fs;
-        var layout   = imports.layout;
-        var tabs     = imports.tabManager;
-        var tree     = imports.tree;
-        var fsCache  = imports["fs.cache"];
+        var c9         = imports.c9;
+        var Plugin     = imports.Plugin;
+        var settings   = imports.settings;
+        var ui         = imports.ui;
+        var commands   = imports.commands;
+        var menus      = imports.menus;
+        var fs         = imports.fs;
+        var layout     = imports.layout;
+        var tabManager = imports.tabManager;
+        var question   = imports["dialog.question"].show;
+        var showSaveAs = imports["dialog.filesave"].show;
         
-        var css           = require("text!./save.css");
-        var saveAsMarkup  = require("text!./saveas.xml");
-        var confirmMarkup = require("text!./confirm.xml");
-        var basename      = require("path").basename;
-        var dirname       = require("path").dirname ;
-
+        var basename   = require("path").basename;
+        var dirname    = require("path").dirname;
         
         /***** Initialization *****/
         
         var plugin = new Plugin("Ajax.org", main.consumes);
         var emit   = plugin.getEmitter();
         
-        var btnSave, winCloseConfirm, btnYesAll, btnNoAll, btnSaveAsCancel;
-        var btnSaveCancel, btnSaveYes, btnSaveNo, saveStatus, btnSaveAsOK;
-        var trSaveAs, winSaveAs, fileDesc, txtSaveAs, lblPath, btnCreateFolder;
-        var chkShowFiles;
+        var btnSave, saveStatus;
         
         var SAVING   = 0;
         var SAVED    = 1;
@@ -56,8 +48,8 @@ define(function(require, exports, module) {
             
             function available(editor){
                 return !!editor && (c9.status & c9.STORAGE)
-                    && (!tabs.focussedTab
-                    || typeof tabs.focussedTab.path == "string");
+                    && (!tabManager.focussedTab
+                    || typeof tabManager.focussedTab.path == "string");
             }
             
             // This prevents the native save dialog to popup while being offline
@@ -82,7 +74,7 @@ define(function(require, exports, module) {
                 bindKey : {mac: "Command-Shift-S", win: "Ctrl-Shift-S"},
                 isAvailable : available,
                 exec: function () {
-                    saveAs();
+                    saveAs(null, function(){});
                 }
             }, plugin);
     
@@ -105,8 +97,8 @@ define(function(require, exports, module) {
                 }
             }, plugin);
     
-            tabs.on("tabBeforeClose", function(e) {
-                var tab        = e.tab;
+            tabManager.on("tabBeforeClose", function(e) {
+                var tab         = e.tab;
                 var undoManager = tab.document.undoManager;
                 
                 // Won't save documents that don't support paths
@@ -138,48 +130,40 @@ define(function(require, exports, module) {
                 if (emit("beforeWarn", { tab : tab }) === false)
                     return;
 
-                drawConfirm();
-
                 // Activate tab to be warned for
-                tabs.activateTab(tab);
-
-                winCloseConfirm.tab = tab;
-                winCloseConfirm.all  = CANCEL;
-                winCloseConfirm.show();
-
-                fileDesc.replaceMarkup("<div><h3>Save " 
-                    + ui.escapeXML(tab.path) + "?</h3><div>This file has "
-                    + "unsaved changes. Your changes will be lost if you don't "
-                    + "save them.</div></div>", { "noLoadingMsg": false });
-
-                winCloseConfirm.on("hide", function onHide(){
-                    if (winCloseConfirm.all != CANCEL) {
-                        function done(){
-                            var tab = winCloseConfirm.tab;
-                            if (!tab) return;
-
-                            delete winCloseConfirm.tab;
-
-                            emit("dialogClose", { tab: tab });
-                            
-                            tab.document.meta.$ignoreSave = true;
-                            tab.close();
-                            delete tab.document.meta.$ignoreSave;
-                        };
-
-                        if (winCloseConfirm.all == YES)
-                            save(winCloseConfirm.tab, {silentsave: true}, done);
-                        else
-                            done();
+                tabManager.activateTab(tab);
+                
+                function close(err){
+                    if (!err || err.code != "EUSERCANCEL") {
+                        // Close file without a check
+                        tab.document.meta.$ignoreSave = true;
+                        tab.close();
+                        
+                        // Remove the flag for the case that the doc is restored
+                        delete tab.document.meta.$ignoreSave;
                     }
-                    else
-                        emit("dialogCancel", { tab: tab });
-
-                    winCloseConfirm.off("hide", onHide);
-                });
-
-                btnYesAll.hide();
-                btnNoAll.hide();
+                    
+                    emit("dialogClose", { tab: tab });
+                }
+                
+                question(
+                    "Save this file?",
+                    "Save " + ui.escapeXML(tab.path) + "?",
+                    "This file has unsaved changes. Your changes will be lost "
+                        + "if you don't save them.",
+                    function(all, tab){ // Yes
+                        save(tab, {silentsave: true}, close);
+                    },
+                    function(all, cancel, tab){ // No
+                        if (cancel) {
+                            emit("dialogCancel", { tab: tab });
+                        }
+                        else {
+                            close();
+                        }
+                    },
+                    { cancel: true, metadata: tab }
+                );
 
                 return false;
             }, plugin);
@@ -212,10 +196,10 @@ define(function(require, exports, module) {
                 command : "reverttosaved"
             }), 700, plugin);
             
-            tabs.on("focus", function(e){
+            tabManager.on("focus", function(e){
                 btnSave.setAttribute("disabled", !available(true));
             });
-            tabs.on("tabDestroy", function(e){
+            tabManager.on("tabDestroy", function(e){
                 if (e.last)
                     btnSave.setAttribute("disabled", true);
             });
@@ -228,237 +212,15 @@ define(function(require, exports, module) {
             });
         }
         
-        var drawn = 0;
-        function drawConfirm(){
-            if (drawn & 1) return;
-            drawn = drawn | 1;
-            
-            ui.insertMarkup(null, confirmMarkup, plugin);
-            
-            winCloseConfirm = plugin.getElement("winCloseConfirm");
-            btnYesAll       = plugin.getElement("btnYesAll");
-            btnNoAll        = plugin.getElement("btnNoAll");
-            btnSaveYes      = plugin.getElement("btnSaveYes");
-            btnSaveNo       = plugin.getElement("btnSaveNo");
-            btnSaveCancel   = plugin.getElement("btnSaveCancel");
-            fileDesc        = plugin.getElement("fileDesc");
-            
-            btnYesAll.on("click", function(){
-                winCloseConfirm.all = YESTOALL;
-                winCloseConfirm.hide();
-            });
-            btnNoAll.on("click", function(){
-                winCloseConfirm.all = NOTOALL;
-                winCloseConfirm.hide();
-            });
-            btnSaveYes.on("click", function(){
-                winCloseConfirm.all = YES;
-                winCloseConfirm.hide();
-            });
-            btnSaveNo.on("click", function(){
-                winCloseConfirm.all = NO;
-                winCloseConfirm.hide();
-            });
-            btnSaveCancel.on("click", function(){
-                winCloseConfirm.all = CANCEL;
-                winCloseConfirm.hide();
-            });
-            
-            winCloseConfirm.on("keydown", function(){
-                if (event.keyCode == 27)
-                    btnSaveCancel.dispatchEvent('click', {htmlEvent: {}});
-                if (event.keyCode == 89)
-                    btnSaveYes.dispatchEvent('click', {htmlEvent: {}});
-                else if (event.keyCode == 78)
-                    btnSaveNo.dispatchEvent('click', {htmlEvent: {}});
-            })
-            
-            emit("drawConfirm");
-        }
-        
-        function drawSaveAs(){
-            if (drawn & 2) return;
-            drawn = drawn | 2;
-            
-            // Import the CSS
-            ui.insertCss(css, plugin);
-            
-            // Create UI elements
-            ui.insertMarkup(null, saveAsMarkup, plugin);
-        
-            winSaveAs       = plugin.getElement("winSaveAs");
-            trSaveAs        = plugin.getElement("trSaveAs");
-            btnSaveAsCancel = plugin.getElement("btnSaveAsCancel");
-            btnSaveAsOK     = plugin.getElement("btnSaveAsOK");
-            lblPath         = plugin.getElement("lblPath");
-            txtSaveAs       = plugin.getElement("txtSaveAs");
-            btnCreateFolder = plugin.getElement("btnCreateFolder");
-            chkShowFiles    = plugin.getElement("chkShowFiles");
-            
-            chkShowFiles.on("onafterchange", function(){
-                if (chkShowFiles.checked)
-                    ui.setStyleClass(trSaveAs.$ext, "", ["hidefiles"]);
-                else
-                    ui.setStyleClass(trSaveAs.$ext, "hidefiles");
-            });
-            btnCreateFolder.on("click", function(){ 
-                tree.createFolder("New Folder", false, function(){}, trSaveAs);
-            });
-            btnSaveAsCancel.on("click", function(){ winSaveAs.hide() });
-            btnSaveAsOK.on("click", function(){ confirmSaveAs(winSaveAs.tab) });
-            txtSaveAs.on("keydown", function(e){ 
-                if (e.keyCode == 13)
-                    confirmSaveAs(winSaveAs.tab);
-            });
-    
-            winSaveAs.on("show", function(){
-                expandTree();
-            });
-            // winSaveAs.on("hide", function(){
-            //     if (winSaveAs.tab) {
-            //         winSaveAs.tab.unload();
-            //         winSaveAs.tab.document.undoManager.reset();
-            //         delete winSaveAs.tab;
-            //     }
-            // });
-            
-            function chooseSaveAsFolder(folder) {
-                var fooPath = folder.getAttribute("path");
-                if (folder.getAttribute("type") != "folder" 
-                  && folder.tagName != "folder") {
-                    var fooPath = fooPath.split("/");
-                    txtSaveAs.setValue(fooPath.pop());
-                    fooPath = fooPath.join("/");
-                }
-                lblPath.setProperty('caption', fooPath);
-            }
-        
-            trSaveAs.on("afterselect", function(){
-                chooseSaveAsFolder(trSaveAs.selected);
-            });
-            trSaveAs.on("afterchoose", function(){
-                chooseSaveAsFolder(trSaveAs.selected)
-            });
-    
-            // Decorate tree with fs actions (copied from tree - should this be a lib?)
-            trSaveAs.setAttribute("model", fsCache.model);
-            
-            // Begin Hack to make tree work well with fsCache managing the model
-            trSaveAs.$setLoadStatus = function(xmlNode, state, remove){
-                // state: loading, loaded, potential, null
-                var to = remove ? "" : state;
-                if (xmlNode.getAttribute("status") != to) {
-                    // Carefully assuming that a change to potential, 
-                    // doesnt require a UI. Needed for preventing recursion
-                    // when delete fails in an expanded tree
-                    if (to == "potential")
-                        xmlNode.setAttribute("status", to)
-                    else
-                        ui.xmldb.setAttribute(xmlNode, "status", to)
-                }
-            };
-        
-            trSaveAs.$hasLoadStatus = function(xmlNode, state, unique){
-                if (!xmlNode)
-                    return false;
-                return xmlNode.getAttribute("status") == state;
-            };
-            // End Hack
-            
-            // Rename
-            trSaveAs.on("beforerename", function(e){
-                if (!c9.has(c9.STORAGE))
-                    return false;
-    
-                if (trSaveAs.$model.data.firstChild == trSaveAs.selected) {
-                    util.alert(
-                        "Cannot rename project folder",
-                        "Unable to rename to project folder",
-                        "The project folder name is related to the url of your project and cannot be renamed here."
-                    );
-                    return false;
-                }
-                
-                var node = e.args[0];
-                var name = e.args[1];
-                
-                // Returning false from this function will cancel the rename. We do this
-                // when the name to which the file is to be renamed contains invalid
-                // characters
-                var match = name.match(/^(?:\w|[.])(?:\w|[ .\-])*$/);
-                if (!match || match[0] != name) {
-                    util.alert(
-                        "Invalid filename",
-                        "Unable to rename to " + name,
-                        "Names are only allowed alfanumeric characters, space, "
-                        + "-, _ and . Use the terminal to rename to alternate names."
-                    );
-                    return false;
-                }
-                
-                // check for a path with the same name, which is not allowed to rename to:
-                var path = node.getAttribute("path"),
-                    newpath = path.replace(/^(.*\/)[^\/]+$/, "$1" + name).toLowerCase(); //@todo check if lowercase isn't wrong
-    
-                var list = fsCache.findNodes(newpath);
-                if (list.length > (list.indexOf(node) > -1 ? 1 : 0)) {
-                    util.alert("Error", "Unable to Rename",
-                        "That name is already taken. Please choose a different name.");
-                    trSaveAs.getActionTracker().undo();
-                    return false;
-                }
-                
-                fs.rename(path, newpath, function(err, success) { });
-                
-                return false;
-            }, plugin);
-            
-            // Remove
-            trSaveAs.on("beforeremove", function(e){
-                if (!c9.has(c9.STORAGE))
-                    return false;
-                
-                var selection = trSaveAs.getSelection();
-                if (selection.indexOf(fsCache.model.data.firstChild) > -1) {
-                    util.alert(
-                        "Cannot remove project folder",
-                        "Unable to remove to project folder",
-                        "The project folder can not be deleted. To delete this project go to the dashboard."
-                    );
-                    return false;
-                }
-                
-                return util.removeInteractive(selection, function(file){
-                    if (file.tagName == "folder")
-                        fs.rmdir(file.getAttribute("path"), {recursive: true}, function(){});
-                    else
-                        fs.rmfile(file.getAttribute("path"), function(){});
-                });
-            });
-            
-            // Insert
-            trSaveAs.on("beforeinsert", function(e){
-                var xmlNode = e.xmlNode;
-                fs.readdir(xmlNode.getAttribute("path"), function(err){
-                    if (err) return;
-
-                    expand(xmlNode);
-                });
-                return false;
-            })
-        
-            emit("drawSaveas");
-        }
-        
         /***** Methods *****/
         
         function revertToSaved(tab, callback){
-            tabs.reload(tab, callback);
+            tabManager.reload(tab, callback);
         }
     
         function saveAll(callback) {
             var count = 0;
-            tabs.getTabs().forEach(function (tab) {
+            tabManager.getTabs().forEach(function (tab) {
                 if (typeof tab.path != "string")
                     return;
                 
@@ -477,48 +239,50 @@ define(function(require, exports, module) {
             if (!count) callback();
         }
     
-        function saveAllInteractive(pages, callback){
-            drawConfirm();
-    
-            winCloseConfirm.all = NO;
+        function saveAllInteractive(tabs, callback){
+            var state   = NO;
+            var counter = tabs.length;
             
-            var total = pages.length, counter = 0;
-            ui.asyncForEach(pages, function(tab, next) {
-                if (!tab.document.undoManager.isAtBookmark()) {
-                    if (winCloseConfirm.all == YESTOALL)
-                        save(tab, null, function(){});
-    
-                    if (winCloseConfirm.all < 1) // YESTOALL, NOTOALL, CANCEL
-                        return next();
-    
-                    // Activate tab
-                    tabs.activateTab(tab);
-                    
-                    fileDesc.replaceMarkup("<div><h3>Save " 
-                        + ui.escapeXML(tab.path) + "?</h3><div>This file has "
-                        + "unsaved changes. Your changes will be lost if you don't "
-                        + "save them.</div></div>", { "noLoadingMsg": false });
-                    
-                    winCloseConfirm.tab = tab;
-                    winCloseConfirm.show();
-                    winCloseConfirm.on("hide", function onHide(){
-                        if (Math.abs(winCloseConfirm.all) == YES)
-                            save(tab, null, function(){});
-    
-                        winCloseConfirm.off("hide", onHide);
-                        next();
-                    });
-    
-                    btnYesAll.setProperty("visible", counter < total - 1);
-                    btnNoAll.setProperty("visible", counter < total - 1);
+            tabs = tabs.filter(function(tab){
+                return !tab.document.undoManager.isAtBookmark();
+            });
+            
+            ui.asyncForEach(tabs, function(tab, next) {
+                counter--;
+                
+                // Yes to all saves all files
+                if (state == YESTOALL) {
+                    save(tab, null, function(){});
+                    return next();
                 }
-                else
-                    next();
+                
+                // Activate tab
+                tabManager.activateTab(tab);
+                
+                question(
+                    "Save this file?",
+                    "Save " + ui.escapeXML(tab.path) + "?",
+                    "This file has unsaved changes. Your changes will be lost "
+                        + "if you don't save them.",
+                    function(all, tab){ // Yes
+                        state = all ? YESTOALL : YES;
+                        save(tab, null, function(){});
+                        next();
+                    },
+                    function(all, cancel, tab){ // No
+                        state = all ? NOTOALL : NO;
                     
-                counter++;
+                        // If cancel or no to all, exit
+                        if (cancel || all)
+                            callback(state);
+                        else
+                            next();
+                    },
+                    { all: counter > 1, cancel: true, metadata: tab }
+                );
             },
             function() {
-                callback(winCloseConfirm.all);
+                callback(state);
             });
         }
     
@@ -529,7 +293,7 @@ define(function(require, exports, module) {
         
         // `silentsave` indicates whether the saving of the file is forced by the user or not.
         function save(tab, options, callback) {
-            if (!tab && !(tab = tabs.focussedTab))
+            if (!tab && !(tab = tabManager.focussedTab))
                 return;
     
             // Optional callback, against code, but allowing for now
@@ -542,10 +306,13 @@ define(function(require, exports, module) {
             // If document is unloaded return
             if (!doc.loaded)
                 return;
+            
+            var value = doc.value;
     
             if (emit("beforeSave", {
                 path     : path,
                 document : doc,
+                value    : value,
                 options  : options
             }) === false)
                 return;
@@ -574,7 +341,7 @@ define(function(require, exports, module) {
             var bookmark = doc.undoManager.position;
             
             var fnProgress = progress.bind(tab);
-            fs.writeFile(path, doc.value, function(err){
+            fs.writeFile(path, value, function(err){
                 if (err) {
                     if (!options.silentsave) {
                         layout.showError("Failed to save document. "
@@ -605,11 +372,11 @@ define(function(require, exports, module) {
                 callback(err);
                 
                 fnProgress({ complete: true });
-                fs.off("progress.upload", fnProgress);
+                fs.off("uploadProgress", fnProgress);
                 
                 checkBuffer(doc);
             });
-            fs.on("progressUpload", fnProgress);
+            fs.on("uploadProgress", fnProgress);
     
             return false;
         }
@@ -635,135 +402,46 @@ define(function(require, exports, module) {
         }
     
         function saveAs(tab, callback){
-            if (!tab && !(tab = tabs.focussedTab))
+            if (!tab && !(tab = tabManager.focussedTab))
                 return;
     
             if (typeof tab.path != "string")
                 return;
     
-            drawSaveAs();
+            function onCancel(){
+                var err = new Error("User Cancelled Save");
+                err.code = "EUSERCANCEL";
+                err.tab  = tab;
+                callback(err);
+            }
     
-            txtSaveAs.setValue(basename(tab.path));
-            winSaveAs.page = tab;
-            winSaveAs.show();
-            
-            // HACK: setProperty doesn't immediately reflect the UI state - needs to be delayed
-            setTimeout(function () {
-                lblPath.setProperty("caption", dirname(tab.path) + "/");
-            });
+            showSaveAs("Save As", tab.path, 
+                function(path, exists, done){
+                    var oldPath = tab.path;
+                    
+                    function doSave(){
+                        done();
+                        save(tab, { path: path }, callback);
+                    }
+                    
+                    if (path == oldPath || !exists)
+                        return doSave();
 
-            winSaveAs.on("hide", function listen(){
-                if (winSaveAs.callback) {
-                    var err = new Error("User Cancelled Save");
-                    err.code = "EUSERCANCEL";
-                    winSaveAs.callback(err);
-                }
-                winSaveAs.off("hide", listen);
-            });
-            
-            winSaveAs.callback = callback;
-        }
-    
-        // Called by the UI 'confirm' button in winSaveAs.
-        function confirmSaveAs(tab) {
-            if (!tab)
-                return;
-            
-            var path    = tab.path;
-            var doc     = tab.document;
-            var newPath = lblPath.getProperty("caption") + txtSaveAs.getValue();
-    
-            var isReplace = false;
-            
-            // check if we're already saving!
-            if (doc.meta.$saveBuffer) {
-                doc.meta.$saveBuffer.push([tab]);
-                return;
-            }
-    
-            function doSave() {
-                var callback = winSaveAs.callback;
-                delete winSaveAs.callback;
-                
-                winSaveAs.hide();
-                save(tab, { path: newPath, replace: isReplace }, function(){});
-    
-                if (window.winConfirm) {
-                    winConfirm.hide();
-    
-                    if (window.btnConfirmOk && btnConfirmOk.caption == "Yes")
-                        btnConfirmOk.setCaption("Ok");
-                }
-                
-                if (callback)
-                    callback();
-            };
-    
-            function doCancel() {
-                if (window.winConfirm && btnConfirmOk.caption == "Yes")
-                    btnConfirmOk.setCaption("Ok");
-            };
-            
-            if (path !== newPath || doc.meta.newfile) {
-                fs.exists(newPath, function (exists, stat) {
-                    if (exists) {
-                        if (stat 
-                          && (/(directory|folder)$/.test(stat.mime) || stat.link 
-                          && /(directory|folder)$/.test(stat.linkStat.mime))) {
-                            var node = fsCache.findNode(newPath);
-                            trSaveAs.select(node);
-                            if (trSaveAs.selected == node) {
-                                txtSaveAs.setValue("");
-                                expand(node);
-                            }
-                            return;
-                        }
-                        
-                        var name = newPath.match(/\/([^\/]*)$/)[1];
-    
-                        isReplace = true;
-                        util.confirm(
-                            "A file with this name already exists",
-                            "\"" + name + "\" already exists, do you want to replace it?",
-                            "A file with the same name already exists at this location." +
-                            "Selecting Yes will overwrite the existing document.",
-                            doSave,
-                            doCancel);
-                        btnConfirmOk.setCaption("Yes");
-                    }
-                    else {
-                        doSave();
-                    }
-                });
-            }
-            else {
-                doSave();
-            }
+                    question(
+                        "A file with this name already exists",
+                        path + " already exists, do you want to replace it?",
+                        "A file with the same name already exists in " + dirname(path) 
+                        + ". Click Yes to overwrite the existing document.",
+                        doSave,
+                        function(){
+                            done()
+                            onCancel();
+                        },
+                        { queue: false });
+                }, 
+                onCancel);
         }
         
-        function expand(xmlNode){
-            var htmlNode = ui.xmldb.getHtmlNode(xmlNode, trSaveAs);
-            if (htmlNode)
-                trSaveAs.slideOpen(null, xmlNode, true);
-        }
-        
-        function expandTree(){
-            function expand(){
-                var tab = tabs.focussedTab;
-                if (!tab) return;
-                
-                // var path  = tab.path
-                // var isNew = tab.document.meta.newfile
-                
-                trSaveAs.slideOpen(null, fsCache.findNode("/"));
-            }
-    
-            if (fsCache.findNode("/").childNodes.length)
-                expand();
-            else
-                trSaveAs.on("afterload", expand);
-        }
-    
         var stateTimer = null, pageTimers = {};
         function setSavingState(tab, state, timeout) {
             clearTimeout(stateTimer);
@@ -854,18 +532,12 @@ define(function(require, exports, module) {
             load();
         });
         plugin.on("enable", function(){
-            winSaveAs && winSaveAs.enable();
             btnSave && btnSave.enable();
-            btnYesAll && btnYesAll.enable();
-            btnSaveYes && btnSaveYes.enable();
         });
         plugin.on("disable", function(){
-            winSaveAs && winSaveAs.disable();
             btnSave && btnSave.disable();
-            btnYesAll && btnYesAll.disable();
-            btnSaveYes && btnSaveYes.disable();
             
-            tabs.getTabs().forEach(function(tab){
+            tabManager.getTabs().forEach(function(tab){
                 if (tab.document.meta.$saveBuffer) {
                     // Set tab in error state
                     setSavingState(tab, "offline");
@@ -882,7 +554,6 @@ define(function(require, exports, module) {
         });
         plugin.on("unload", function(){
             loaded = false;
-            drawn  = 0;
         });
         
         /***** Register and define API *****/
@@ -934,6 +605,7 @@ define(function(require, exports, module) {
                  * @param {Object}   e
                  * @param {String}   e.path      The path of the file that to be saved.
                  * @param {Document} e.document  The document object that contains the file contents.
+                 * @param {String}   e.value     The value of the document that is to be saved.
                  * @param {Object}   e.options   The options passed to the {@link #save} method.
                  * @cancellable
                  */
@@ -977,11 +649,6 @@ define(function(require, exports, module) {
                  */
                 "dialogCancel",
                 /**
-                 * Fires when the confirmation dialog is drawn.
-                 * @event drawConfirm
-                 */
-                "drawConfirm",
-                /**
                  * Fires when the save as dialog is drawn.
                  * @event drawSaveas
                  */
@@ -999,7 +666,7 @@ define(function(require, exports, module) {
              * Saves the contents of a tab to disk using `fs.writeFile`
              * @param {Tab}      tab                   The tab to save
              * @param {Object}   options
-             * @param {String}   options.path          The new path of the file (otherwise tab.path is used)
+             * @param {String}   [options.path]        The new path of the file (otherwise tab.path is used)
              * @param {Boolean}  [options.force]       Species whether to save no matter what conditions
              * @param {Boolean}  [options.silentsave]  Species whether to show an error message in the UI when a save fails
              * @param {Number}   [options.timeout]     the time any success state is shown in the UI
