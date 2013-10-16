@@ -543,7 +543,7 @@ define(function(require, exports, module) {
             if (!doc.loaded)
                 return;
     
-            if (emit("beforeSave", { 
+            if (emit("beforeSave", {
                 path     : path,
                 document : doc,
                 options  : options
