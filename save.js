@@ -97,6 +97,16 @@ define(function(require, exports, module) {
                 }
             }, plugin);
     
+            commands.addCommand({
+                name    : "reverttosavedall",
+                hint    : "downgrade the all open tabs to the last saved version",
+                bindKey : { mac: "Option-Shift-Q", win: "Alt-Shift-Q" },
+                isAvailable : available,
+                exec: function () {
+                    revertToSavedAll();
+                }
+            }, plugin);
+    
             tabManager.on("tabBeforeClose", function(e) {
                 var tab         = e.tab;
                 var undoManager = tab.document.undoManager;
@@ -180,6 +190,14 @@ define(function(require, exports, module) {
                 command  : "save"
             }), 1000, plugin);
     
+
+            menus.addItemByPath("File/Revert to Saved", new ui.item({
+                command : "reverttosaved"
+            }), 700, plugin);
+            menus.addItemByPath("File/Revert All to Saved", new ui.item({
+                command : "reverttosavedall"
+            }), 720, plugin);
+            
             menus.addItemByPath("File/Save", new ui.item({
                 command : "save"
             }), 1000, plugin);
@@ -191,10 +209,6 @@ define(function(require, exports, module) {
             menus.addItemByPath("File/Save All", new ui.item({
                 command : "saveall"
             }), 1200, plugin);
-
-            menus.addItemByPath("File/Revert to Saved", new ui.item({
-                command : "reverttosaved"
-            }), 700, plugin);
             
             tabManager.on("focus", function(e){
                 btnSave.setAttribute("disabled", !available(true));
@@ -216,6 +230,13 @@ define(function(require, exports, module) {
         
         function revertToSaved(tab, callback){
             tabManager.reload(tab, callback);
+        }
+        
+        function revertToSavedAll(){
+            tabManager.getTabs().forEach(function(tab){
+                if (tab.path)
+                    tabManager.reload(tab, function(){});
+            });
         }
     
         function saveAll(callback) {
