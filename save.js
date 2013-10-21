@@ -403,11 +403,12 @@ define(function(require, exports, module) {
         }
         
         function progress(e){
-            e.upload = true;
-            
-            var doc = this.document;
-            doc.progress(e);
-            doc.meta.$saving = Date.now();
+            if (this.path == e.path) {
+                e.upload = true;
+                var doc = this.document;
+                doc.progress(e);
+                doc.meta.$saving = Date.now();
+            }
         }
         
         // TODO remove saveBuffer once there is a way to cancel fs.writeFile
