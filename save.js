@@ -410,15 +410,16 @@ define(function(require, exports, module) {
             doc.meta.$saving = Date.now();
         }
         
+        // TODO remove saveBuffer once there is a way to cancel fs.writeFile
         function checkBuffer(doc){
             if (doc.meta.$saveBuffer) {
-                var next = doc.meta.$saveBuffer.shift();
-                if (next) {
+                var next = doc.meta.$saveBuffer.pop();
+                if (next && !doc.undoManager.isAtBookmark()) {
                     (next[1] || (next[1] = {})).force = true;
                     save.apply(window, next);
                 }
-                else
-                    delete doc.meta.$saveBuffer;
+        
+                delete doc.meta.$saveBuffer;
             }
         }
     
