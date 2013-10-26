@@ -360,7 +360,19 @@ define(function(require, exports, module) {
     
             var bookmark = doc.undoManager.position;
             
-            var fnProgress = progress.bind(tab);
+            function fnProgress(e){
+                if (tab.path == e.path) {
+                    e.upload = true;
+                    var doc = tab.document;
+                    doc.progress(e);
+                    doc.meta.$saving = Date.now();
+                    
+                    if (e.complete)
+                        fs.off("uploadProgress", fnProgress);
+                }
+            }
+            fs.on("uploadProgress", fnProgress);
+        
             fs.writeFile(path, value, function(err){
                 if (err) {
                     if (!options.silentsave) {
@@ -390,24 +402,10 @@ define(function(require, exports, module) {
                 });
                 
                 callback(err);
-                
-                fnProgress({ complete: true });
-                fs.off("uploadProgress", fnProgress);
-                
                 checkBuffer(doc);
             });
-            fs.on("uploadProgress", fnProgress);
     
             return false;
-        }
-        
-        function progress(e){
-            if (this.path == e.path) {
-                e.upload = true;
-                var doc = this.document;
-                doc.progress(e);
-                doc.meta.$saving = Date.now();
-            }
         }
         
         // TODO remove saveBuffer once there is a way to cancel fs.writeFile
