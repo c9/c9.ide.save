@@ -22,6 +22,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.core/util",
         "plugins/c9.ide.ui/lib_apf",
         "plugins/c9.ide.ui/tooltip",
+        "plugins/c9.ide.ui/menus",
         {
             packagePath: "plugins/c9.core/settings",
             testing: true
@@ -58,13 +59,15 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         {
             consumes : ["apf", "ui", "Plugin"],
             provides : [
-                "commands", "menus", "commands", "layout", "watcher", 
-                "save", "anims", "tree", "preferences", "clipboard"
+                "commands", "menus", "commands", "layout", "watcher", "save", 
+                "anims", "tree", "preferences", "clipboard", "dialog.alert",
+                "dialog.question", "dialog.filesave", "dialog.fileoverwrite",
+                "auth.bootstrap", "ace.stripws"
             ],
             setup    : expect.html.mocked
         },
         {
-            consumes : ["tabManager", "save", "fs", "autosave"],
+            consumes : ["tabManager", "save", "fs", "autosave", "settings"],
             provides : [],
             setup    : main
         }
@@ -79,6 +82,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         var fs       = imports.fs;
         var save     = imports.save;
         var autosave = imports.autosave;
+        var settings = imports.settings;
         
         function countEvents(count, expected, done){
             if (count == expected) 
@@ -101,7 +105,6 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             return tab;
         }
         
-        var files = [];
         describe('autosave', function() {
             this.timeout(2000)
             
@@ -117,6 +120,8 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                         done();
                     });
                 });
+                
+                settings.set("user/general/@autosave", "true");
                 
                 bar.$ext.style.background = "rgba(220, 220, 220, 0.93)";
                 bar.$ext.style.position = "fixed";
