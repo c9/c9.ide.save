@@ -190,7 +190,6 @@ define(function(require, exports, module) {
                 command  : "save"
             }), 1000, plugin);
     
-
             menus.addItemByPath("File/Revert to Saved", new ui.item({
                 command : "reverttosaved"
             }), 700, plugin);
