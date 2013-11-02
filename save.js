@@ -462,6 +462,12 @@ define(function(require, exports, module) {
                 onCancel);
         }
         
+        function getSavingState(tab) {
+            return tab.className.names.filter(function(c) {
+                return ["saving", "saved", "changed", "offline", "error"].indexOf(c) > -1;
+            })[0] || "saved";
+        }
+        
         var stateTimer = null, pageTimers = {};
         function setSavingState(tab, state, timeout) {
             clearTimeout(stateTimer);
@@ -742,10 +748,18 @@ define(function(require, exports, module) {
             /**
              * Sets the saving state of a tab
              * @param {Tab}    tab    The tab to set the state of.
-             * @param {String} state  The saving state. This argument has three
-             * possible values: "saving", "saved", "offline"
+             * @param {String} state  The saving state. This argument has four
+             * possible values: "saving", "saved", "changed", "offline"
              */
-            setSavingState : setSavingState
+            setSavingState : setSavingState,
+            
+            /**
+             * Gets the saving state of a tab
+             * @param {Tab}    tab     The tab to set the state of.
+             * @return {String} state  The saving state. This argument has four
+             * possible values: "saving", "saved", "changed", "offline"
+             */
+            getSavingState : getSavingState,
         });
         
         register(null, {
