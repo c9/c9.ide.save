@@ -1,5 +1,7 @@
 /*global describe it before after  =*/
 
+"use client";
+
 require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"], 
   function (architect, chai, baseProc) {
     var expect = chai.expect;
@@ -21,6 +23,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.core/http",
         "plugins/c9.core/util",
         "plugins/c9.ide.ui/lib_apf",
+        "plugins/c9.ide.ui/menus",
         {
             packagePath: "plugins/c9.core/settings",
             testing: true
@@ -50,17 +53,27 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         },
         "plugins/c9.fs/fs.cache.xml",
         
+        "plugins/c9.ide.dialog/dialog",
+        "plugins/c9.ide.dialog.common/alert",
+        "plugins/c9.ide.dialog.common/confirm",
+        "plugins/c9.ide.dialog.common/filechange",
+        "plugins/c9.ide.dialog.common/fileoverwrite",
+        "plugins/c9.ide.dialog.common/fileremove",
+        "plugins/c9.ide.dialog.common/question",
+        "plugins/c9.ide.dialog.file/filesave",
+        
         // Mock plugins
         {
             consumes : ["apf", "ui", "Plugin"],
             provides : [
                 "commands", "menus", "commands", "layout", "watcher", 
-                "save", "anims", "tree", "preferences", "clipboard"
+                "save", "anims", "tree", "preferences", "clipboard",
+                "auth.bootstrap"
             ],
             setup    : expect.html.mocked
         },
         {
-            consumes : ["tabManager", "save", "fs"],
+            consumes : ["tabManager", "save", "fs", "dialog.filesave", "dialog.question"],
             provides : [],
             setup    : main
         }
@@ -71,9 +84,11 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
     });
     
     function main(options, imports, register) {
-        var tabs    = imports.tabManager;
-        var fs      = imports.fs;
-        var save    = imports.save;
+        var tabs     = imports.tabManager;
+        var fs       = imports.fs;
+        var save     = imports.save;
+        var filesave = imports["dialog.filesave"];
+        var question = imports["dialog.question"];
         
         function countEvents(count, expected, done){
             if (count == expected) 
@@ -95,8 +110,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             tab.document.editor.ace.insert("test");
             return tab;
         }
-        
-        var files = [];
+
+        var TIMEOUT = 10;        
+        var files   = [];
         describe('save', function() {
             this.timeout(2000)
             
@@ -172,6 +188,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                         expect(count).to.equal(0);
                         count++;
                     });
+                    tab.editor.ace.insert("test");
                     save.save(tab, null, function(err){
                         if (err) throw err;
                         expect(count).to.equal(1);
@@ -225,12 +242,13 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     
                     var seen = false;
                     setTimeout(function(){
-                        var win = save.getElement("winSaveAs");
+                        var win = filesave.getElement("window");
+                        var input = filesave.getElement("txtFilename");
                         expect(win.visible).to.ok;
-                        expect(win.$int.querySelector("input").value).to.equal(path.substr(1));
+                        expect(input.value).to.equal(path.substr(1));
                         seen = true;
                         win.hide();
-                    }, 500);
+                    }, TIMEOUT);
                 });
                 it('should not show the saveAs dialog when saving a newfile with path in the options', function(done) {
                     var path = "/shouldnotsave.txt";
@@ -264,7 +282,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                     });
                                 });
                                 
-                                save.getElement("btnSaveYes").dispatchEvent("click");
+                                question.getElement("yes").dispatchEvent("click");
                             }, 500)
                         });
                         
@@ -320,20 +338,22 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 it('should save a file under a new filename', function(done) {
                     var tab = tabs.focussedTab;
                     files.push("/save1b.txt");
-                    save.saveAs(tab, function(err){
-                        expect(err).to.not.ok
-                        expect(seen).to.ok
-                        done();
+                    fs.unlink("/save1b.txt", function(){
+                        save.saveAs(tab, function(err){
+                            expect(err).to.not.ok
+                            expect(seen).to.ok
+                            done();
+                        });
+                        
+                        var seen = false;
+                        setTimeout(function(){
+                            var win = filesave.getElement("window");
+                            expect(win.visible).to.ok;
+                            seen = true;
+                            filesave.getElement("txtFilename").setValue("save1b.txt");
+                            filesave.getElement("btnChoose").dispatchEvent("click");
+                        }, TIMEOUT);
                     });
-                    
-                    var seen = false;
-                    setTimeout(function(){
-                        var win = save.getElement("winSaveAs");
-                        expect(win.visible).to.ok;
-                        seen = true;
-                        win.$int.querySelector("input").value = "/save1b.txt";
-                        save.getElement("btnSaveAsOK").dispatchEvent("click");
-                    }, 500);
                 });
                 it('should trigger saveAs and then cancel it', function(done) {
                     var tab = tabs.focussedTab;
@@ -345,11 +365,11 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     
                     var seen = false;
                     setTimeout(function(){
-                        var win = save.getElement("winSaveAs");
+                        var win = filesave.getElement("window");
                         expect(win.visible).to.ok;
                         seen = true;
                         win.hide();
-                    }, 500);
+                    }, TIMEOUT);
                 });
             });
             describe("revertToSaved", function(){
@@ -374,14 +394,16 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 it('should revert a change tab', function(done) {
                     var tab = changeTab("/save1.txt", function(){
                         save.revertToSaved(tab, function(err){
-                            expect(err).to.not.ok
-                            expect(tab.document.changed).to.not.ok
-                            expect(tab.document.value).to.equal("/save1.txt");
-                            expect(tab.document.undoManager.length).to.equal(2);
-                            expect(tab.document.undoManager.position).to.equal(1);
-                            expect(tab.document.undoManager.isAtBookmark()).to.ok;
-                            expect(tab.className.names.indexOf("loading")).to.equal(-1);
-                            done();
+                            expect(err).to.not.ok;
+                            setTimeout(function(){
+                                expect(tab.document.changed).to.not.ok
+                                expect(tab.document.value).to.equal("/save1.txt");
+                                expect(tab.document.undoManager.length).to.equal(2);
+                                expect(tab.document.undoManager.position).to.equal(1);
+                                expect(tab.document.undoManager.isAtBookmark()).to.ok;
+                                expect(tab.className.names.indexOf("loading")).to.equal(-1);
+                                done();
+                            }, TIMEOUT);
                         });
                     });
                 });
@@ -453,7 +475,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                     done();
                                 });
                                 
-                                save.getElement("btnYesAll").dispatchEvent("click");
+                                setTimeout(function(){
+                                    question.getElement("yestoall").dispatchEvent("click");
+                                }, TIMEOUT);
                             });
                         });
                     });

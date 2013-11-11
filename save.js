@@ -97,6 +97,16 @@ define(function(require, exports, module) {
                 }
             }, plugin);
     
+            commands.addCommand({
+                name    : "reverttosavedall",
+                hint    : "downgrade the all open tabs to the last saved version",
+                bindKey : { mac: "Option-Shift-Q", win: "Alt-Shift-Q" },
+                isAvailable : available,
+                exec: function () {
+                    revertToSavedAll();
+                }
+            }, plugin);
+    
             tabManager.on("tabBeforeClose", function(e) {
                 var tab         = e.tab;
                 var undoManager = tab.document.undoManager;
@@ -180,6 +190,13 @@ define(function(require, exports, module) {
                 command  : "save"
             }), 1000, plugin);
     
+            menus.addItemByPath("File/Revert to Saved", new ui.item({
+                command : "reverttosaved"
+            }), 700, plugin);
+            menus.addItemByPath("File/Revert All to Saved", new ui.item({
+                command : "reverttosavedall"
+            }), 720, plugin);
+            
             menus.addItemByPath("File/Save", new ui.item({
                 command : "save"
             }), 1000, plugin);
@@ -191,10 +208,6 @@ define(function(require, exports, module) {
             menus.addItemByPath("File/Save All", new ui.item({
                 command : "saveall"
             }), 1200, plugin);
-
-            menus.addItemByPath("File/Revert to Saved", new ui.item({
-                command : "reverttosaved"
-            }), 700, plugin);
             
             tabManager.on("focus", function(e){
                 btnSave.setAttribute("disabled", !available(true));
@@ -216,6 +229,13 @@ define(function(require, exports, module) {
         
         function revertToSaved(tab, callback){
             tabManager.reload(tab, callback);
+        }
+        
+        function revertToSavedAll(){
+            tabManager.getTabs().forEach(function(tab){
+                if (tab.path)
+                    tabManager.reload(tab, function(){});
+            });
         }
     
         function saveAll(callback) {
@@ -340,7 +360,19 @@ define(function(require, exports, module) {
     
             var bookmark = doc.undoManager.position;
             
-            var fnProgress = progress.bind(tab);
+            function fnProgress(e){
+                if (tab.path == e.path) {
+                    e.upload = true;
+                    var doc = tab.document;
+                    doc.progress(e);
+                    doc.meta.$saving = Date.now();
+                    
+                    if (e.complete)
+                        fs.off("uploadProgress", fnProgress);
+                }
+            }
+            fs.on("uploadProgress", fnProgress);
+        
             fs.writeFile(path, value, function(err){
                 if (err) {
                     if (!options.silentsave) {
@@ -370,34 +402,22 @@ define(function(require, exports, module) {
                 });
                 
                 callback(err);
-                
-                fnProgress({ complete: true });
-                fs.off("uploadProgress", fnProgress);
-                
                 checkBuffer(doc);
             });
-            fs.on("uploadProgress", fnProgress);
     
             return false;
         }
         
-        function progress(e){
-            e.upload = true;
-            
-            var doc = this.document;
-            doc.progress(e);
-            doc.meta.$saving = Date.now();
-        }
-        
+        // TODO remove saveBuffer once there is a way to cancel fs.writeFile
         function checkBuffer(doc){
             if (doc.meta.$saveBuffer) {
-                var next = doc.meta.$saveBuffer.shift();
-                if (next) {
+                var next = doc.meta.$saveBuffer.pop();
+                if (next && !doc.undoManager.isAtBookmark()) {
                     (next[1] || (next[1] = {})).force = true;
                     save.apply(window, next);
                 }
-                else
-                    delete doc.meta.$saveBuffer;
+        
+                delete doc.meta.$saveBuffer;
             }
         }
     
