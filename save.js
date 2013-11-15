@@ -186,6 +186,7 @@ define(function(require, exports, module) {
                 caption  : "Save",
                 tooltip  : "Save",
                 disabled : "true",
+                visible  : false,
                 skin     : "c9-toolbarbutton-glossy",
                 command  : "save"
             }), 1000, plugin);
