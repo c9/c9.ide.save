@@ -1,5 +1,3 @@
-/*global winConfirm, btnConfirmOk */
-
 define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "fs", "layout", "commands", "menus", "settings", "ui", 
@@ -386,6 +384,7 @@ define(function(require, exports, module) {
                 }
                 else {
                     delete doc.meta.newfile;
+                    doc.meta.timestamp = Date.now() - settings.timeOffset;
                     doc.undoManager.bookmark(bookmark);
                     
                     if (options.path)
