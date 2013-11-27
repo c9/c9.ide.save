@@ -243,7 +243,9 @@ define(function(require, exports, module) {
                 if (typeof tab.path != "string")
                     return;
                 
-                if (tab.document.undoManager.isAtBookmark())
+                if (tab.document.undoManager.isAtBookmark() 
+                  || tab.document.meta.newfile
+                  || tab.document.meta.preview)
                     return;
                     
                 count++;
