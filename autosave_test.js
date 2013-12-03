@@ -9,7 +9,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
     document.body.appendChild(document.createElement("div"))
         .setAttribute("id", "saveStatus");
     
-    architect.resolveConfig([
+    expect.setupArchitectTest([
         {
             packagePath : "plugins/c9.core/c9",
             startdate   : new Date(),
@@ -64,7 +64,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 "commands", "menus", "commands", "layout", "watcher", "save", 
                 "anims", "tree", "preferences", "clipboard", "dialog.alert",
                 "dialog.question", "dialog.filesave", "dialog.fileoverwrite",
-                "auth.bootstrap", "ace.stripws"
+                "auth.bootstrap", "ace.stripws", "proc"
             ],
             setup    : expect.html.mocked
         },
@@ -73,11 +73,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             provides : [],
             setup    : main
         }
-    ], function (err, config) {
-        if (err) throw err;
-        var app = architect.createApp(config);
-        app.on("service", function(name, plugin){ plugin.name = name; });
-    });
+    ], architect);
     
     function main(options, imports, register) {
         var tabs     = imports.tabManager;

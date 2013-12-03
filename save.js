@@ -1,5 +1,3 @@
-/*global winConfirm, btnConfirmOk */
-
 define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "fs", "layout", "commands", "menus", "settings", "ui", 
@@ -186,6 +184,7 @@ define(function(require, exports, module) {
                 caption  : "Save",
                 tooltip  : "Save",
                 disabled : "true",
+                visible  : false,
                 skin     : "c9-toolbarbutton-glossy",
                 command  : "save"
             }), 1000, plugin);
@@ -244,7 +243,9 @@ define(function(require, exports, module) {
                 if (typeof tab.path != "string")
                     return;
                 
-                if (tab.document.undoManager.isAtBookmark())
+                if (tab.document.undoManager.isAtBookmark() 
+                  || tab.document.meta.newfile
+                  || tab.document.meta.preview)
                     return;
                     
                 count++;
@@ -385,6 +386,7 @@ define(function(require, exports, module) {
                 }
                 else {
                     delete doc.meta.newfile;
+                    doc.meta.timestamp = Date.now() - settings.timeOffset;
                     doc.undoManager.bookmark(bookmark);
                     
                     if (options.path)
@@ -460,6 +462,12 @@ define(function(require, exports, module) {
                         { queue: false });
                 }, 
                 onCancel);
+        }
+        
+        function getSavingState(tab) {
+            return tab.className.names.filter(function(c) {
+                return ["saving", "saved", "changed", "offline", "error"].indexOf(c) > -1;
+            })[0] || "saved";
         }
         
         var stateTimer = null, pageTimers = {};
@@ -742,10 +750,18 @@ define(function(require, exports, module) {
             /**
              * Sets the saving state of a tab
              * @param {Tab}    tab    The tab to set the state of.
-             * @param {String} state  The saving state. This argument has three
-             * possible values: "saving", "saved", "offline"
+             * @param {String} state  The saving state. This argument has four
+             * possible values: "saving", "saved", "changed", "offline"
              */
-            setSavingState : setSavingState
+            setSavingState : setSavingState,
+            
+            /**
+             * Gets the saving state of a tab
+             * @param {Tab}    tab     The tab to set the state of.
+             * @return {String} state  The saving state. This argument has four
+             * possible values: "saving", "saved", "changed", "offline"
+             */
+            getSavingState : getSavingState,
         });
         
         register(null, {
