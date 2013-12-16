@@ -46,7 +46,10 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.ide.editors/tab",
         "plugins/c9.ide.ace/ace",
         "plugins/c9.ide.save/save",
-        "plugins/c9.ide.save/autosave",
+        {
+            packagePath: "plugins/c9.ide.save/autosave",
+            testing: true
+        },
         {
             packagePath : "plugins/c9.vfs.client/vfs_client"
         },
@@ -111,16 +114,15 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 apf.config.setProperty("allow-select", false);
                 apf.config.setProperty("allow-blur", false);
                 
-                tabs.getPanes()[0].focus();
-                
                 var path = "/autosave1.txt";
                 fs.writeFile(path, path, function(){
-                    tabs.openFile(path, function(){
-                        done();
+                    tabs.on("ready", function(){
+                        tabs.getPanes()[0].focus();
+                        tabs.openFile(path, function(){
+                            done();
+                        });
                     });
                 });
-                
-                settings.set("user/general/@autosave", "true");
                 
                 bar.$ext.style.background = "rgba(220, 220, 220, 0.93)";
                 bar.$ext.style.position = "fixed";

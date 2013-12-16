@@ -47,7 +47,8 @@ define(function(require, exports, module) {
             
             settings.on("read", function(e){
                 settings.setDefaults("user/general", [["autosave", "false"]]);
-                autosave = settings.getBool("user/general/@autosave");
+                autosave = options.testing 
+                    || settings.getBool("user/general/@autosave");
                 transformButton();
             }, plugin);
     
