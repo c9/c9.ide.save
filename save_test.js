@@ -74,6 +74,11 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             setup    : expect.html.mocked
         },
         {
+            consumes : [],
+            provides : ["proc"],
+            setup    : expect.html.mocked
+        },
+        {
             consumes : ["tabManager", "save", "fs", "dialog.filesave", "dialog.question"],
             provides : [],
             setup    : main
@@ -102,22 +107,27 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         
         function changeTab(path, done){
             var tab = tabs.findTab(path);
+            if (!tab) 
+                return setTimeout(changeTab.bind(null, path, done), 100);
+            
             tabs.focusTab(tab);
-            tab.document.undoManager.once("change", done);
+            tab.document.undoManager.once("change", function(){
+                expect(tab.document.changed).to.ok;
+                done();
+            });
             tab.document.editor.ace.insert("test");
+            
             return tab;
         }
 
         var TIMEOUT = 10;        
         var files   = [];
         describe('save', function() {
-            this.timeout(2000)
+            this.timeout(6000)
             
             before(function(done){
                 apf.config.setProperty("allow-select", false);
                 apf.config.setProperty("allow-blur", false);
-                
-                tabs.getPanes()[0].focus();
                 
                 files = ["/save1.txt", "/save2.txt", "/save3.txt"];
                 
@@ -129,7 +139,11 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 bar.$ext.style.height = "150px";
       
                 document.body.style.marginBottom = "180px";
-                done();
+                
+                tabs.on("ready", function(){
+                    tabs.getPanes()[0].focus();
+                    done();
+                });
             });
             after(function(done){
                 files.forEach(function(path){
@@ -141,10 +155,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             
             describe("save", function(){
                 before(function(done){
+                    var count = 0;
                     files.every(function(path, i){
+                        count++;
                         fs.writeFile(path, path, function(){
                             tabs.openFile(path, function(){
-                                if (path == files[2])
+                                if (--count === 0)
                                     done();
                             });
                         });
@@ -164,7 +180,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     var tab = changeTab(path, function(){
                         save.save(tab, null, function(err){
                             if (err) throw err;
-                            expect(tab.document.changed).to.not.ok
+                            expect(tab.document.changed).to.not.ok;
                             
                             fs.readFile(path, function(err, data){
                                 if (err) throw err;
@@ -407,10 +423,14 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             });
             describe("saveAll", function(){
                 before(function(done){
+                    var count = 0;
+                    
                     files.every(function(path, i){
+                        count++;
+                        
                         fs.writeFile(path, path, function(){
                             tabs.openFile(path, function(){
-                                if (path == files[2])
+                                if (--count === 0)
                                     done();
                             });
                         });
@@ -432,7 +452,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                             expect(page2.document.changed).to.ok;
                             expect(page3.document.changed).to.not.ok;
                             
-                            save.saveAll(function(){
+                            save.saveAll(function(err){
+                                if (err) throw err;
+                                
                                 expect(page1.document.changed).to.not.ok;
                                 expect(page2.document.changed).to.not.ok;
                                 expect(page3.document.changed).to.not.ok;
