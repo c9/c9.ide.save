@@ -324,8 +324,6 @@ define(function(require, exports, module) {
             var doc     = tab.document;
             var path    = options.path || tab.path;
             
-            if (!doc) debugger;
-            
             // If document is unloaded return
             if (!doc.loaded)
                 return;
@@ -362,7 +360,6 @@ define(function(require, exports, module) {
             setSavingState(tab, "saving");
     
             var bookmark = doc.undoManager.position;
-            console.warn(tab.path, doc.undoManager.getState())
             
             function fnProgress(e){
                 if (tab.path == e.path) {
@@ -391,9 +388,6 @@ define(function(require, exports, module) {
                     delete doc.meta.newfile;
                     doc.meta.timestamp = Date.now() - settings.timeOffset;
                     
-                    if (bookmark == doc.undoManager.length)
-                        debugger;
-                    
                     doc.undoManager.bookmark(bookmark);
                     
                     if (options.path)
@@ -410,7 +404,6 @@ define(function(require, exports, module) {
                     options  : options 
                 });
                 
-                console.warn("done:", tab.path, doc.undoManager.getState())
                 callback(err);
                 checkBuffer(doc);
             });
