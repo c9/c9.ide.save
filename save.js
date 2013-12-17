@@ -387,7 +387,6 @@ define(function(require, exports, module) {
                 else {
                     delete doc.meta.newfile;
                     doc.meta.timestamp = Date.now() - settings.timeOffset;
-                    
                     doc.undoManager.bookmark(bookmark);
                     
                     if (options.path)
