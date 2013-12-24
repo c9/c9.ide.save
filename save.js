@@ -181,6 +181,7 @@ define(function(require, exports, module) {
             var toolbar = layout.findParent({name: "save"});
             btnSave = ui.insertByIndex(toolbar, new ui.button({
                 id       : "btnSave",
+                "class"  : "btnSave",
                 caption  : "Save",
                 tooltip  : "Save",
                 disabled : "true",
