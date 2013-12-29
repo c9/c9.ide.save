@@ -362,18 +362,15 @@ define(function(require, exports, module) {
     
             var bookmark = doc.undoManager.position;
             
-            function fnProgress(e){
-                if (tab.path == e.path) {
-                    e.upload = true;
-                    var doc = tab.document;
-                    doc.progress(e);
-                    doc.meta.$saving = Date.now();
-                    
-                    if (e.complete)
-                        fs.off("uploadProgress", fnProgress);
-                }
+            function fnProgress(loaded, total, complete){
+                doc.progress({ 
+                    loaded   : loaded, 
+                    total    : total, 
+                    upload   : true, 
+                    complete : complete 
+                });
+                doc.meta.$saving = Date.now();
             }
-            fs.on("uploadProgress", fnProgress);
         
             fs.writeFile(path, value, function(err){
                 if (err) {
@@ -406,7 +403,7 @@ define(function(require, exports, module) {
                 
                 callback(err);
                 checkBuffer(doc);
-            });
+            }, fnProgress);
     
             return false;
         }
