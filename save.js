@@ -331,13 +331,16 @@ define(function(require, exports, module) {
             
             var value = doc.value;
     
-            if (emit("beforeSave", {
+            var doSave = emit("beforeSave", {
                 path     : path,
                 document : doc,
                 value    : value,
                 options  : options
-            }) === false)
+            });
+            if (doSave === false)
                 return;
+            if (!doSave) 
+                doSave = fs.writeFile;
     
             // Use the save as flow for files that don't have a path yet
             if (!options.path && (doc.meta.newfile || !tab.path)){
@@ -372,7 +375,7 @@ define(function(require, exports, module) {
                 doc.meta.$saving = Date.now();
             }
         
-            fs.writeFile(path, value, function(err){
+            doSave(path, value, function(err){
                 if (err) {
                     if (!options.silentsave) {
                         layout.showError("Failed to save document. "
