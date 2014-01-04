@@ -149,10 +149,12 @@ define(function(require, exports, module) {
                 return;
             }
             
+            var doc;
             if (!force && (!tab.path 
-              || !tab.document.changed
-              || tab.document.meta.newfile
-              || tab.document.meta.error))
+              || !(doc = tab.document).changed
+              || doc.meta.newfile
+              || doc.meta.error
+              || doc.meta.$saving))
                 return;
     
             save.save(tab, { silentsave: true, timeout: 1 }, function() {
