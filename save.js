@@ -363,17 +363,20 @@ define(function(require, exports, module) {
             
             setSavingState(tab, "saving");
     
-            var bookmark = doc.undoManager.position;
+            var bookmark   = doc.undoManager.position;
+            var loadStartT = Date.now();
             
             function fnProgress(loaded, total, complete){
                 doc.progress({ 
                     loaded   : loaded, 
                     total    : total, 
                     upload   : true, 
-                    complete : complete 
+                    complete : complete,
+                    dt       : Date.now() - loadStartT
                 });
                 doc.meta.$saving = Date.now();
             }
+            fnProgress(0, 1, 0);
         
             doSave(path, value, function(err){
                 if (err) {
