@@ -1,7 +1,8 @@
 define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "fs", "layout", "commands", "menus", "settings", "ui", 
-        "tabManager", "dialog.question", "dialog.filesave", "dialog.fileoverwrite"
+        "tabManager", "dialog.question", "dialog.filesave", "dialog.fileoverwrite",
+        "dialog.error"
     ];
     main.provides = ["save"];
     return main;
@@ -18,8 +19,8 @@ define(function(require, exports, module) {
         var tabManager = imports.tabManager;
         var question   = imports["dialog.question"].show;
         var showSaveAs = imports["dialog.filesave"].show;
+        var showError  = imports["dialog.error"].show;
         
-        var basename   = require("path").basename;
         var dirname    = require("path").dirname;
         
         /***** Initialization *****/
@@ -309,7 +310,7 @@ define(function(require, exports, module) {
         }
     
         function ideIsOfflineMessage() {
-            layout.showError("Failed to save file. Please check your connection. "
+            showError("Failed to save file. Please check your connection. "
                 + "When your connection has been restored you can try to save the file again.");
         }
         
@@ -381,7 +382,7 @@ define(function(require, exports, module) {
             doSave(path, value, function(err){
                 if (err) {
                     if (!options.silentsave) {
-                        layout.showError("Failed to save document. "
+                        showError("Failed to save document. "
                             + "Please see if your internet connection is available and try again. "
                             + err.message
                         );
