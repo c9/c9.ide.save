@@ -152,7 +152,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                         done();
                     });
                 });
-            })
+            });
             
             describe("save", function(){
                 before(function(done){
