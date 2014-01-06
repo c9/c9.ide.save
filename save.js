@@ -427,7 +427,7 @@ define(function(require, exports, module) {
                 var next = doc.meta.$saveBuffer;
                 delete doc.meta.$saveBuffer;
                 
-                if (next && !doc.undoManager.isAtBookmark()) {
+                if (next !== true && !doc.undoManager.isAtBookmark()) {
                     (next[1] || (next[1] = {})).force = true;
                     save.apply(window, next);
                 }
