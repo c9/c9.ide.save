@@ -356,10 +356,16 @@ define(function(require, exports, module) {
             // Check if we're already saving!
             if (!options.force) {
                 if (doc.meta.$saveBuffer) {
-                    doc.meta.$saveBuffer.push([tab, options, callback]);
-                    return;
+                    if (Date.now() - doc.meta.$saveBuffer[3] > 120000) {
+                        doc.meta.$saveBuffer = true;
+                    }
+                    else {
+                        doc.meta.$saveBuffer = [tab, options, callback, 
+                            doc.meta.$saveBuffer[3] || Date.now()];
+                        return;
+                    }
                 }
-                doc.meta.$saveBuffer = [];
+                doc.meta.$saveBuffer = true;
             }
             
             setSavingState(tab, "saving");
@@ -418,13 +424,13 @@ define(function(require, exports, module) {
         // TODO remove saveBuffer once there is a way to cancel fs.writeFile
         function checkBuffer(doc){
             if (doc.meta.$saveBuffer) {
-                var next = doc.meta.$saveBuffer.pop();
-                if (next && !doc.undoManager.isAtBookmark()) {
+                var next = doc.meta.$saveBuffer;
+                delete doc.meta.$saveBuffer;
+                
+                if (next !== true && !doc.undoManager.isAtBookmark()) {
                     (next[1] || (next[1] = {})).force = true;
                     save.apply(window, next);
                 }
-        
-                delete doc.meta.$saveBuffer;
             }
         }
     
