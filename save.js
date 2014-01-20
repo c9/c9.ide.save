@@ -293,7 +293,7 @@ define(function(require, exports, module) {
                         next();
                     },
                     function(all, cancel, tab){ // No
-                        state = all ? NOTOALL : NO;
+                        state = cancel ? CANCEL : (all ? NOTOALL : NO);
                     
                         // If cancel or no to all, exit
                         if (cancel || all)
