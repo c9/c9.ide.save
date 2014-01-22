@@ -264,7 +264,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                         win.hide();
                     }, TIMEOUT);
                 });
-                it('should not show the saveAs dialog when saving a newfile with path in the options', function(done) {
+                it.only('should not show the saveAs dialog when saving a newfile with path in the options', function(done) {
                     var path = "/shouldnotsave.txt";
                     
                     tabs.open({
@@ -277,7 +277,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                         }
                     }, function(err, tab){
                         save.save(tab, { path: path}, function(err){
-                            expect(tab.document.changed).not.ok
+                            expect(tab.document.changed).not.ok;
+                            debugger;
+                            expect(tab.document.meta.newfile).not.ok;
                             tab.close();
                             done();
                         });
