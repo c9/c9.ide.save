@@ -186,7 +186,7 @@ define(function(require, exports, module) {
         /***** Register and define API *****/
         
         /**
-         * Implements auto save for Cloud9 IDE. When the user enables autosave
+         * Implements auto save for Cloud9. When the user enables autosave
          * the contents of files are automatically saved about 500ms after the
          * change is made.
          * @singleton
