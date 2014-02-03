@@ -582,10 +582,9 @@ define(function(require, exports, module) {
                     setSavingState(tab, "offline");
                     
                     // Call callback
-                    tab.document.meta.$saveBuffer.forEach(function(item){
-                        if (item[2])
-                            item[2](new Error("Disabled Save Plugin"));
-                    });
+                    var item = tab.document.meta.$saveBuffer;
+                    if (item[2])
+                        item[2](new Error("Disabled Save Plugin"));
                     
                     delete tab.document.meta.$saveBuffer;
                 }
