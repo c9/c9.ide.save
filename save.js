@@ -191,24 +191,26 @@ define(function(require, exports, module) {
                 command  : "save"
             }), 1000, plugin);
     
-            menus.addItemByPath("File/Revert to Saved", new ui.item({
-                command : "reverttosaved"
-            }), 700, plugin);
-            menus.addItemByPath("File/Revert All to Saved", new ui.item({
-                command : "reverttosavedall"
-            }), 720, plugin);
-            
+            menus.addItemByPath("File/~", new ui.divider(), 600, plugin);
+    
             menus.addItemByPath("File/Save", new ui.item({
                 command : "save"
-            }), 1000, plugin);
+            }), 700, plugin);
 
             menus.addItemByPath("File/Save As...", new ui.item({
                 command : "saveas"
-            }), 1100, plugin);
+            }), 800, plugin);
 
             menus.addItemByPath("File/Save All", new ui.item({
                 command : "saveall"
-            }), 1200, plugin);
+            }), 900, plugin);
+            
+            menus.addItemByPath("File/Revert to Saved", new ui.item({
+                command : "reverttosaved"
+            }), 1000, plugin);
+            menus.addItemByPath("File/Revert All to Saved", new ui.item({
+                command : "reverttosavedall"
+            }), 1100, plugin);
             
             tabManager.on("focus", function(e){
                 btnSave.setAttribute("disabled", !available(true));
