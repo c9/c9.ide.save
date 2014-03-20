@@ -155,6 +155,7 @@ define(function(require, exports, module) {
             if (!force && (!tab.path 
               || !(doc = tab.document).changed
               || doc.meta.newfile
+              || doc.meta.nofs
               || doc.meta.error
               || doc.meta.$saving))
                 return;
