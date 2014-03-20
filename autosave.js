@@ -34,11 +34,13 @@ define(function(require, exports, module) {
             loaded = true;
             
             prefs.add({
-                "General" : {
-                    "General" : {
+                "File" : {
+                    position : 150,
+                    "Save" : {
+                        position : 100,
                         "Enable Auto-Save" : {
                             type     : "checkbox",
-                            position : 1000,
+                            position : 100,
                             path     : "user/general/@autosave"
                         }
                     }
