@@ -138,6 +138,18 @@ define(function(require, exports, module) {
                 // For autosave and other plugins
                 if (emit("beforeWarn", { tab : tab }) === false)
                     return;
+                
+                // If currently saving, lets see if that succeeds
+                if (tab.document.meta.$saveBuffer) {
+                    plugin.on("afterSave", function monitor(e){
+                        if (e.document == tab.document) {
+                            if (tab.loaded)
+                                tab.close();
+                            plugin.off("afterSave", monitor);
+                        }
+                    });
+                    return false;
+                }
 
                 // Activate tab to be warned for
                 tabManager.activateTab(tab);
