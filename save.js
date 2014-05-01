@@ -395,7 +395,8 @@ define(function(require, exports, module) {
                     complete : complete,
                     dt       : Date.now() - loadStartT
                 });
-                doc.meta.$saving = Date.now();
+                if (!complete)
+                    doc.meta.$saving = Date.now();
             }
             fnProgress(0, 1, 0);
         
