@@ -116,12 +116,13 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 apf.config.setProperty("allow-blur", false);
                 
                 var path = "/autosave1.txt";
-                fs.writeFile(path, path, function(){
-                    tabs.on("ready", function(){
-                        tabs.getPanes()[0].focus();
-                        tabs.openFile(path, function(){
-                            done();
-                        });
+                fs.writeFile(path, path, function(err){
+                    if (err) console.error(err)
+                });
+                tabs.on("ready", function(){
+                    tabs.getPanes()[0].focus();
+                    tabs.openFile(path, function(){
+                        setTimeout(done, 50);
                     });
                 });
                 
