@@ -57,6 +57,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         
         "plugins/c9.ide.dialog/dialog",
         "plugins/c9.ide.dialog.common/alert",
+        "plugins/c9.ide.dialog.common/alert_internal",
         "plugins/c9.ide.dialog.common/confirm",
         "plugins/c9.ide.dialog.common/filechange",
         "plugins/c9.ide.dialog.common/fileoverwrite",
