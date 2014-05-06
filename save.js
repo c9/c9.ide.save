@@ -8,44 +8,44 @@ define(function(require, exports, module) {
     return main;
 
     function main(options, imports, register) {
-        var c9         = imports.c9;
-        var Plugin     = imports.Plugin;
-        var settings   = imports.settings;
-        var ui         = imports.ui;
-        var commands   = imports.commands;
-        var menus      = imports.menus;
-        var fs         = imports.fs;
-        var layout     = imports.layout;
+        var c9 = imports.c9;
+        var Plugin = imports.Plugin;
+        var settings = imports.settings;
+        var ui = imports.ui;
+        var commands = imports.commands;
+        var menus = imports.menus;
+        var fs = imports.fs;
+        var layout = imports.layout;
         var tabManager = imports.tabManager;
-        var question   = imports["dialog.question"].show;
+        var question = imports["dialog.question"].show;
         var showSaveAs = imports["dialog.filesave"].show;
-        var showError  = imports["dialog.error"].show;
+        var showError = imports["dialog.error"].show;
         
-        var dirname    = require("path").dirname;
+        var dirname = require("path").dirname;
         
         /***** Initialization *****/
         
         var plugin = new Plugin("Ajax.org", main.consumes);
-        var emit   = plugin.getEmitter();
+        var emit = plugin.getEmitter();
         
         var btnSave, saveStatus;
         
-        var SAVING   = 0;
-        var SAVED    = 1;
-        var OFFLINE  = 2;
+        var SAVING = 0;
+        var SAVED = 1;
+        var OFFLINE = 2;
         
         var YESTOALL = -2;
-        var NOTOALL  = -1;
-        var YES      = 2;
-        var NO       = 1;
-        var CANCEL   = 0;
+        var NOTOALL = -1;
+        var YES = 2;
+        var NO = 1;
+        var CANCEL = 0;
         
         var loaded = false;
         function load(){
             if (loaded) return false;
             loaded = true;
             
-            function available(editor){
+            function available(editor) {
                 return !!editor && (c9.status & c9.STORAGE)
                     && (!tabManager.focussedTab
                     || typeof tabManager.focussedTab.path == "string");
@@ -53,61 +53,61 @@ define(function(require, exports, module) {
             
             // This prevents the native save dialog to popup while being offline
             commands.addCommand({
-                bindKey : {mac: "Command-S", win: "Ctrl-S"},
-                exec    : function(){}
+                bindKey: {mac: "Command-S", win: "Ctrl-S"},
+                exec: function(){}
             }, plugin);
             
             commands.addCommand({
-                name    : "save",
-                hint    : "save the currently active file to disk",
-                bindKey : {mac: "Command-S", win: "Ctrl-S"},
-                isAvailable : available,
+                name: "save",
+                hint: "save the currently active file to disk",
+                bindKey: {mac: "Command-S", win: "Ctrl-S"},
+                isAvailable: available,
                 exec: function () {
                     save(null, null, function(){});
                 }
             }, plugin);
     
             commands.addCommand({
-                name    : "saveas",
-                hint    : "save the file to disk with a different filename",
-                bindKey : {mac: "Command-Shift-S", win: "Ctrl-Shift-S"},
-                isAvailable : available,
+                name: "saveas",
+                hint: "save the file to disk with a different filename",
+                bindKey: {mac: "Command-Shift-S", win: "Ctrl-Shift-S"},
+                isAvailable: available,
                 exec: function () {
                     saveAs(null, function(){});
                 }
             }, plugin);
     
             commands.addCommand({
-                name    : "saveall",
-                hint    : "save all unsaved files",
-                isAvailable : available,
+                name: "saveall",
+                hint: "save all unsaved files",
+                isAvailable: available,
                 exec: function () {
                     saveAll(function(){});
                 }
             }, plugin);
     
             commands.addCommand({
-                name    : "reverttosaved",
-                hint    : "downgrade the currently active file to the last saved version",
-                bindKey : { mac: "Ctrl-Shift-Q", win: "Ctrl-Shift-Q" },
-                isAvailable : available,
+                name: "reverttosaved",
+                hint: "downgrade the currently active file to the last saved version",
+                bindKey: { mac: "Ctrl-Shift-Q", win: "Ctrl-Shift-Q" },
+                isAvailable: available,
                 exec: function () {
                     revertToSaved(null, function(){});
                 }
             }, plugin);
     
             commands.addCommand({
-                name    : "reverttosavedall",
-                hint    : "downgrade the all open tabs to the last saved version",
-                bindKey : { mac: "Option-Shift-Q", win: "Alt-Shift-Q" },
-                isAvailable : available,
+                name: "reverttosavedall",
+                hint: "downgrade the all open tabs to the last saved version",
+                bindKey: { mac: "Option-Shift-Q", win: "Alt-Shift-Q" },
+                isAvailable: available,
                 exec: function () {
                     revertToSavedAll();
                 }
             }, plugin);
     
             tabManager.on("tabBeforeClose", function(e) {
-                var tab         = e.tab;
+                var tab = e.tab;
                 var undoManager = tab.document.undoManager;
                 
                 // Won't save documents that don't support paths
@@ -141,7 +141,7 @@ define(function(require, exports, module) {
                 
                 // If currently saving, lets see if that succeeds
                 if (tab.document.meta.$saveBuffer) {
-                    plugin.on("afterSave", function monitor(e){
+                    plugin.on("afterSave", function monitor(e) {
                         if (e.document == tab.document) {
                             if (tab.loaded)
                                 tab.close();
@@ -154,7 +154,7 @@ define(function(require, exports, module) {
                 // Activate tab to be warned for
                 tabManager.activateTab(tab);
                 
-                function close(err){
+                function close(err) {
                     if (!err || err.code != "EUSERCANCEL") {
                         // Close file without a check
                         tab.document.meta.$ignoreSave = true;
@@ -193,46 +193,46 @@ define(function(require, exports, module) {
     
             var toolbar = layout.findParent({name: "save"});
             btnSave = ui.insertByIndex(toolbar, new ui.button({
-                id       : "btnSave",
+                id: "btnSave",
                 "class"  : "btnSave",
-                caption  : "Save",
-                tooltip  : "Save",
-                disabled : "true",
-                visible  : false,
-                skin     : "c9-toolbarbutton-glossy",
-                command  : "save"
+                caption: "Save",
+                tooltip: "Save",
+                disabled: "true",
+                visible: false,
+                skin: "c9-toolbarbutton-glossy",
+                command: "save"
             }), 1000, plugin);
     
             menus.addItemByPath("File/~", new ui.divider(), 600, plugin);
     
             menus.addItemByPath("File/Save", new ui.item({
-                command : "save"
+                command: "save"
             }), 700, plugin);
 
             menus.addItemByPath("File/Save As...", new ui.item({
-                command : "saveas"
+                command: "saveas"
             }), 800, plugin);
 
             menus.addItemByPath("File/Save All", new ui.item({
-                command : "saveall"
+                command: "saveall"
             }), 900, plugin);
             
             menus.addItemByPath("File/Revert to Saved", new ui.item({
-                command : "reverttosaved"
+                command: "reverttosaved"
             }), 1000, plugin);
             menus.addItemByPath("File/Revert All to Saved", new ui.item({
-                command : "reverttosavedall"
+                command: "reverttosavedall"
             }), 1100, plugin);
             
-            tabManager.on("focus", function(e){
+            tabManager.on("focus", function(e) {
                 btnSave.setAttribute("disabled", !available(true));
             });
-            tabManager.on("tabDestroy", function(e){
+            tabManager.on("tabDestroy", function(e) {
                 if (e.last)
                     btnSave.setAttribute("disabled", true);
             });
             
-            c9.on("stateChange", function(e){
+            c9.on("stateChange", function(e) {
                 if (e.state & c9.STORAGE) 
                     plugin.enable();
                 else 
@@ -242,12 +242,12 @@ define(function(require, exports, module) {
         
         /***** Methods *****/
         
-        function revertToSaved(tab, callback){
+        function revertToSaved(tab, callback) {
             tabManager.reload(tab, callback);
         }
         
         function revertToSavedAll(){
-            tabManager.getTabs().forEach(function(tab){
+            tabManager.getTabs().forEach(function(tab) {
                 if (tab.path)
                     tabManager.reload(tab, function(){});
             });
@@ -265,7 +265,7 @@ define(function(require, exports, module) {
                     return;
                     
                 count++;
-                save(tab, null, function(err){
+                save(tab, null, function(err) {
                     if (--count === 0 || err) {
                         callback(err);
                         count = 0;
@@ -276,11 +276,11 @@ define(function(require, exports, module) {
             if (!count) callback();
         }
     
-        function saveAllInteractive(tabs, callback){
-            var state   = NO;
+        function saveAllInteractive(tabs, callback) {
+            var state = NO;
             var counter = tabs.length;
             
-            tabs = tabs.filter(function(tab){
+            tabs = tabs.filter(function(tab) {
                 return !tab.document.undoManager.isAtBookmark();
             });
             
@@ -337,8 +337,8 @@ define(function(require, exports, module) {
             if (!options)
                 options = {};
     
-            var doc     = tab.document;
-            var path    = options.path || tab.path;
+            var doc = tab.document;
+            var path = options.path || tab.path;
             
             // If document is unloaded return
             if (!doc.loaded)
@@ -347,10 +347,10 @@ define(function(require, exports, module) {
             var value = doc.value;
     
             var doSave = emit("beforeSave", {
-                path     : path,
-                document : doc,
-                value    : value,
-                options  : options
+                path: path,
+                document: doc,
+                value: value,
+                options: options
             });
             if (doSave === false)
                 return;
@@ -384,23 +384,23 @@ define(function(require, exports, module) {
             
             setSavingState(tab, "saving");
     
-            var bookmark   = doc.undoManager.position;
+            var bookmark = doc.undoManager.position;
             var loadStartT = Date.now();
             
-            function fnProgress(loaded, total, complete){
+            function fnProgress(loaded, total, complete) {
                 doc.progress({ 
-                    loaded   : loaded, 
-                    total    : total, 
-                    upload   : true, 
-                    complete : complete,
-                    dt       : Date.now() - loadStartT
+                    loaded: loaded, 
+                    total: total, 
+                    upload: true, 
+                    complete: complete,
+                    dt: Date.now() - loadStartT
                 });
                 if (!complete)
                     doc.meta.$saving = Date.now();
             }
             fnProgress(0, 1, 0);
         
-            doSave(path, value, function(err){
+            doSave(path, value, function(err) {
                 if (err) {
                     if (!options.silentsave) {
                         showError("Failed to save document. "
@@ -423,10 +423,10 @@ define(function(require, exports, module) {
                 }
                 
                 emit("afterSave", { 
-                    path     : path,
-                    document : doc, 
-                    err      : err, 
-                    options  : options 
+                    path: path,
+                    document: doc, 
+                    err: err, 
+                    options: options 
                 });
                 
                 callback(err);
@@ -437,7 +437,7 @@ define(function(require, exports, module) {
         }
         
         // TODO remove saveBuffer once there is a way to cancel fs.writeFile
-        function checkBuffer(doc){
+        function checkBuffer(doc) {
             if (doc.meta.$saveBuffer) {
                 var next = doc.meta.$saveBuffer;
                 delete doc.meta.$saveBuffer;
@@ -449,7 +449,7 @@ define(function(require, exports, module) {
             }
         }
     
-        function saveAs(tab, callback){
+        function saveAs(tab, callback) {
             if (!tab && !(tab = tabManager.focussedTab))
                 return;
     
@@ -459,12 +459,12 @@ define(function(require, exports, module) {
             function onCancel(){
                 var err = new Error("User Cancelled Save");
                 err.code = "EUSERCANCEL";
-                err.tab  = tab;
+                err.tab = tab;
                 callback(err);
             }
     
             showSaveAs("Save As", tab.path, 
-                function(path, exists, done){
+                function(path, exists, done) {
                     var oldPath = tab.path;
                     
                     function doSave(){
@@ -591,7 +591,7 @@ define(function(require, exports, module) {
         plugin.on("disable", function(){
             btnSave && btnSave.disable();
             
-            tabManager.getTabs().forEach(function(tab){
+            tabManager.getTabs().forEach(function(tab) {
                 if (tab.document.meta.$saveBuffer) {
                     // Set tab in error state
                     setSavingState(tab, "offline");
@@ -633,25 +633,25 @@ define(function(require, exports, module) {
             /**
              * @property {-2} YESTOALL  The state when the user clicked the "Yes To All" button.
              */
-            YESTOALL  : YESTOALL,
+            YESTOALL: YESTOALL,
             /**
              * @property {-1} NOTOALL  The state when the user clicked the "No To All" button.
              */
-            NOTOALL   : NOTOALL,
+            NOTOALL: NOTOALL,
             /**
              * @property {2} YES  The state when the user clicked the "Yes" button.
              */
-            YES       : YES,
+            YES: YES,
             /**
              * @property {1} NO  The state when the user clicked the "No" button.
              */
-            NO        : NO,
+            NO: NO,
             /**
              * @property {0} CANCEL  The state when the user clicked the "Cancel" button.
              */
-            CANCEL    : CANCEL,
+            CANCEL: CANCEL,
             
-            _events : [
+            _events: [
                 /**
                  * Fires before the file is being saved
                  * @event beforeSave
@@ -728,7 +728,7 @@ define(function(require, exports, module) {
              * @fires beforeSave
              * @fires afterSave
              */
-            save : save,
+            save: save,
             
             /**
              * Saves a file and allows the user to choose the path
@@ -736,20 +736,20 @@ define(function(require, exports, module) {
              * @param {Function} callback      Called after the file is saved or had an error
              * @param {Error}    callback.err  The error object, if an error occured during saving.
              */
-            saveAs : saveAs,
+            saveAs: saveAs,
             
             /**
              * Reverts the value of a tab / document back to the value that is on disk
              * @param {Tab} tab the tab to save
              */
-            revertToSaved : revertToSaved,
+            revertToSaved: revertToSaved,
             
             /**
              * Saves all changed pages
              * @param {Function} callback      called after the files are saved or had an error
              * @param {Error}    callback.err  The error object, if an error occured during saving.
              */
-            saveAll : saveAll,
+            saveAll: saveAll,
             
             /**
              * Saves a set of pages by asking the user for confirmation
@@ -770,7 +770,7 @@ define(function(require, exports, module) {
              * <tr><td>{@link save#CANCEL save.CANCEL}</td><td>       The user cancelled the saving of the tabs.</td></tr>
              * </table>
              */
-            saveAllInteractive : saveAllInteractive,
+            saveAllInteractive: saveAllInteractive,
             
             /**
              * Sets the saving state of a tab
@@ -778,7 +778,7 @@ define(function(require, exports, module) {
              * @param {String} state  The saving state. This argument has four
              * possible values: "saving", "saved", "changed", "offline"
              */
-            setSavingState : setSavingState,
+            setSavingState: setSavingState,
             
             /**
              * Gets the saving state of a tab
@@ -786,7 +786,7 @@ define(function(require, exports, module) {
              * @return {String} state  The saving state. This argument has four
              * possible values: "saving", "saved", "changed", "offline"
              */
-            getSavingState : getSavingState,
+            getSavingState: getSavingState,
         });
         
         register(null, {

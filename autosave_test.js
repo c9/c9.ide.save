@@ -1,4 +1,4 @@
-/*global describe it before after  =*/
+/*global describe it before after = */
 
 "use client";
 
@@ -11,12 +11,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
     
     expect.setupArchitectTest([
         {
-            packagePath : "plugins/c9.core/c9",
-            startdate   : new Date(),
-            debug       : true,
-            hosted      : true,
-            local       : false,
-            davPrefix   : "/"
+            packagePath: "plugins/c9.core/c9",
+            startdate: new Date(),
+            debug: true,
+            hosted: true,
+            local: false,
+            davPrefix: "/"
         },
         
         "plugins/c9.core/ext",
@@ -31,8 +31,8 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         },
         "plugins/c9.core/api.js",
         {
-            packagePath  : "plugins/c9.ide.ui/ui",
-            staticPrefix : "plugins/c9.ide.ui"
+            packagePath: "plugins/c9.ide.ui/ui",
+            staticPrefix: "plugins/c9.ide.ui"
         },
         "plugins/c9.ide.editors/document",
         "plugins/c9.ide.editors/undomanager",
@@ -52,7 +52,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             testing: true
         },
         {
-            packagePath : "plugins/c9.vfs.client/vfs_client"
+            packagePath: "plugins/c9.vfs.client/vfs_client"
         },
         "plugins/c9.vfs.client/endpoint",
         "plugins/c9.ide.auth/auth",
@@ -64,30 +64,30 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         
         // Mock plugins
         {
-            consumes : ["apf", "ui", "Plugin"],
-            provides : [
+            consumes: ["apf", "ui", "Plugin"],
+            provides: [
                 "commands", "menus", "commands", "layout", "watcher", "save", 
                 "anims", "tree", "preferences", "clipboard", "dialog.alert",
                 "dialog.question", "dialog.filesave", "dialog.fileoverwrite",
                 "auth.bootstrap", "ace.stripws", "proc", "info", "dialog.error"
             ],
-            setup    : expect.html.mocked
+            setup: expect.html.mocked
         },
         {
-            consumes : ["tabManager", "save", "fs", "autosave", "settings"],
-            provides : [],
-            setup    : main
+            consumes: ["tabManager", "save", "fs", "autosave", "settings"],
+            provides: [],
+            setup: main
         }
     ], architect);
     
     function main(options, imports, register) {
-        var tabs     = imports.tabManager;
-        var fs       = imports.fs;
-        var save     = imports.save;
+        var tabs = imports.tabManager;
+        var fs = imports.fs;
+        var save = imports.save;
         var autosave = imports.autosave;
         var settings = imports.settings;
         
-        function countEvents(count, expected, done){
+        function countEvents(count, expected, done) {
             if (count == expected) 
                 done();
             else
@@ -95,12 +95,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     + count + " of " + expected);
         }
         
-        expect.html.setConstructor(function(tab){
+        expect.html.setConstructor(function(tab) {
             if (typeof tab == "object")
                 return tab.pane.aml.getPage("editor::" + tab.editorType).$ext;
         });
         
-        function changeTab(path, done){
+        function changeTab(path, done) {
             var tab = tabs.findTab(path);
             tabs.focusTab(tab);
             tab.document.undoManager.once("change", done);
@@ -111,12 +111,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         describe('autosave', function() {
             this.timeout(2000)
             
-            before(function(done){
+            before(function(done) {
                 apf.config.setProperty("allow-select", false);
                 apf.config.setProperty("allow-blur", false);
                 
                 var path = "/autosave1.txt";
-                fs.writeFile(path, path, function(err){
+                fs.writeFile(path, path, function(err) {
                     if (err) console.error(err)
                 });
                 tabs.on("ready", function(){
@@ -137,12 +137,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             });
             
             it('should automatically save a tab that is changed', function(done) {
-                var path  = "/autosave1.txt";
+                var path = "/autosave1.txt";
                 var tab = changeTab(path, function(){
                     expect(tab.document.changed).to.ok
                     
                     save.once("afterSave", function(){
-                        fs.readFile(path, function(err, data){
+                        fs.readFile(path, function(err, data) {
                             if (err) throw err;
                             expect(data).to.equal("test" + path);
                             
@@ -154,7 +154,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 });
             });
             
-            if (!onload.remain){
+            if (!onload.remain) {
                 describe("unload()", function(){
                     it('should destroy all ui elements when it is unloaded', function(done) {
                         autosave.unload();
@@ -165,7 +165,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 //@todo Idea: show in the tabs whether the editor is running atm
                 // @todo test fs integration
                 
-                after(function(done){
+                after(function(done) {
                     document.body.style.marginBottom = "";
                     tabs.unload();
                     done();

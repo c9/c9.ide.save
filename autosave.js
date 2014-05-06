@@ -8,24 +8,24 @@ define(function(require, exports, module) {
     return main;
 
     function main(options, imports, register) {
-        var c9       = imports.c9;
-        var Plugin   = imports.Plugin;
+        var c9 = imports.c9;
+        var Plugin = imports.Plugin;
         var settings = imports.settings;
-        var save     = imports.save;
-        var tooltip  = imports.tooltip;
-        var tabs     = imports.tabManager;
-        var prefs    = imports.preferences;
-        var stripws  = imports["ace.stripws"];
+        var save = imports.save;
+        var tooltip = imports.tooltip;
+        var tabs = imports.tabManager;
+        var prefs = imports.preferences;
+        var stripws = imports["ace.stripws"];
         
         /***** Initialization *****/
         
         var plugin = new Plugin("Ajax.org", main.consumes);
-        // var emit   = plugin.getEmitter();
+        // var emit = plugin.getEmitter();
         
-        var INTERVAL       = 60000;
+        var INTERVAL = 60000;
         var CHANGE_TIMEOUT = 500;
         
-        var docChangeTimeout   = null;
+        var docChangeTimeout = null;
         var btnSave, autosave, saveInterval;
         
         var loaded = false;
@@ -35,19 +35,19 @@ define(function(require, exports, module) {
             
             prefs.add({
                 "File" : {
-                    position : 150,
+                    position: 150,
                     "Save" : {
-                        position : 100,
+                        position: 100,
                         "Enable Auto-Save" : {
-                            type     : "checkbox",
-                            position : 100,
-                            path     : "user/general/@autosave"
+                            type: "checkbox",
+                            position: 100,
+                            path: "user/general/@autosave"
                         }
                     }
                 }
             }, plugin);
             
-            settings.on("read", function(e){
+            settings.on("read", function(e) {
                 settings.setDefaults("user/general", [["autosave", "false"]]);
                 autosave = options.testing 
                     || settings.getBool("user/general/@autosave");
@@ -65,14 +65,14 @@ define(function(require, exports, module) {
                     check();
             }, plugin);
             
-            save.getElement("btnSave", function(btn){
+            save.getElement("btnSave", function(btn) {
                 btnSave = btn;
                 transformButton();
             });
             
-            tabs.on("tabCreate", function(e){
+            tabs.on("tabCreate", function(e) {
                 var tab = e.tab;
-                tab.document.undoManager.on("change", function(e){
+                tab.document.undoManager.on("change", function(e) {
                     if (!autosave || !tab.path)
                         return;
                     
@@ -84,7 +84,7 @@ define(function(require, exports, module) {
                 }, plugin);
             }, plugin);
             
-            tabs.on("tabDestroy", function(e){
+            tabs.on("tabDestroy", function(e) {
                 if (!e.tab.path)
                     return;
                 
@@ -94,7 +94,7 @@ define(function(require, exports, module) {
                 saveTab(e.tab);
             }, plugin);
             
-            save.on("beforeWarn", function(e){
+            save.on("beforeWarn", function(e) {
                 if (autosave && !e.tab.document.meta.newfile) {
                     saveTab(e.tab);
                     return false;
@@ -115,13 +115,13 @@ define(function(require, exports, module) {
                 apf.setStyleClass(btnSave.$ext, "btnSave");
                 
                 tooltip.add(btnSave, {
-                    message : "Changes to your file are automatically saved.<br />\
+                    message: "Changes to your file are automatically saved.<br />\
                         View all your changes through <a href='javascript:void(0)' \
                         onclick='require(\"ext/revisions/revisions\").toggle();' \
                         class='revisionsInfoLink'>the Revision History pane</a>. \
                         Rollback to a previous state, or make comparisons.",
-                    width : "250px",
-                    hideonclick : true
+                    width: "250px",
+                    hideonclick: true
                 }, plugin);
             }
             else {
