@@ -119,7 +119,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 fs.writeFile(path, path, function(err) {
                     if (err) console.error(err)
                 });
-                tabs.on("ready", function(){
+                tabs.once("ready", function(){
                     tabs.getPanes()[0].focus();
                     tabs.openFile(path, function(){
                         setTimeout(done, 50);

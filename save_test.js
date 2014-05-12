@@ -142,7 +142,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
       
                 document.body.style.marginBottom = "180px";
                 
-                tabs.on("ready", function(){
+                tabs.once("ready", function(){
                     tabs.getPanes()[0].focus();
                     done();
                 });
