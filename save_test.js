@@ -417,7 +417,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                 expect(tab.document.undoManager.length).to.equal(2);
                                 expect(tab.document.undoManager.position).to.equal(1);
                                 expect(tab.document.undoManager.isAtBookmark()).to.ok;
-                                expect(tab.className.names.indexOf("loading")).to.equal(-1);
+                                expect(tab.classList.names.indexOf("loading")).to.equal(-1);
                                 done();
                             }, TIMEOUT);
                         });

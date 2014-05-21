@@ -491,7 +491,7 @@ define(function(require, exports, module) {
         }
         
         function getSavingState(tab) {
-            return tab.className.names.filter(function(c) {
+            return tab.classList.names.filter(function(c) {
                 return ["saving", "saved", "changed", "offline", "error"].indexOf(c) > -1;
             })[0] || "saved";
         }
@@ -501,7 +501,7 @@ define(function(require, exports, module) {
             clearTimeout(stateTimer);
             clearTimeout(pageTimers[tab.name]);
             
-            tab.className.remove("saving", "saved", "error");
+            tab.classList.remove("saving", "saved", "error");
             
             var doc = tab.document;
             clearTimeout(doc.meta.$saveTimer);
@@ -518,7 +518,7 @@ define(function(require, exports, module) {
                 saveStatus.style.display = "block";
                 btnSave.currentState = SAVING;
                 btnSave.setCaption("Saving");
-                tab.className.add("saving");
+                tab.classList.add("saving");
                 
                 // Error if file isn't saved after 30 seconds and no progress
                 // event happened
@@ -549,7 +549,7 @@ define(function(require, exports, module) {
                 saveStatus.style.display = "block";
                 btnSave.currentState = SAVED;
                 btnSave.setCaption("Changes saved");
-                tab.className.add("saved");
+                tab.classList.add("saved");
         
                 stateTimer = setTimeout(function () {
                     if (btnSave.currentState === SAVED)
@@ -559,7 +559,7 @@ define(function(require, exports, module) {
                 pageTimers[tab.name] = setTimeout(function () {
                     if (btnSave.currentState === SAVED) {
                         saveStatus.style.display = "none";
-                        tab.className.remove("saved");
+                        tab.classList.remove("saved");
                     }
                     emit("tabSavingState", { tab: tab });
                 }, timeout || 500);
@@ -575,7 +575,7 @@ define(function(require, exports, module) {
         
                 btnSave.currentState = OFFLINE;
                 btnSave.setCaption("Not saved");
-                tab.className.add("error");
+                tab.classList.add("error");
             }
             emit("tabSavingState", { tab: tab });
         }
