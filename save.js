@@ -344,7 +344,7 @@ define(function(require, exports, module) {
             if (!doc.loaded)
                 return;
             
-            var value = doc.value;
+            var value = options.value || doc.value;
     
             var doSave = emit("beforeSave", {
                 path: path,

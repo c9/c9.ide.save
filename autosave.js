@@ -24,6 +24,8 @@ define(function(require, exports, module) {
         
         var INTERVAL = 60000;
         var CHANGE_TIMEOUT = 500;
+        var SLOW_CHANGE_TIMEOUT = options.slowChangeTimeout || 30000;
+        var SLOW_SAVE_THRESHOLD = 100 * 1024; // 100KB
         
         var docChangeTimeout = null;
         var btnSave, autosave, saveInterval;
@@ -80,7 +82,9 @@ define(function(require, exports, module) {
                     docChangeTimeout = setTimeout(function() {
                         stripws.disable();
                         saveTab(tab);
-                    }, CHANGE_TIMEOUT);
+                    }, tab.document.meta.$slowSave 
+                        ? SLOW_CHANGE_TIMEOUT 
+                        : CHANGE_TIMEOUT);
                 }, plugin);
             }, plugin);
             
@@ -160,7 +164,19 @@ define(function(require, exports, module) {
               || doc.meta.$saving))
                 return;
     
-            save.save(tab, { silentsave: true, timeout: 1 }, function() {
+            var value = doc.value;
+            var slow = value.length > SLOW_SAVE_THRESHOLD;
+            if (slow && !doc.meta.$slowSave) {
+                doc.meta.$slowSave = true;
+                return;
+            }
+            doc.meta.$slowSave = slow;
+    
+            save.save(tab, { 
+                silentsave: true, 
+                timeout: 1, 
+                value: value
+            }, function() {
                 stripws.enable();
             });
         }
