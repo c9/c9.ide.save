@@ -1,8 +1,8 @@
 define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "fs", "layout", "commands", "menus", "settings", "ui", 
-        "tabManager", "dialog.question", "dialog.filesave", "dialog.fileoverwrite",
-        "dialog.error"
+        "tabManager", "dialog.question", "dialog.filesave", 
+        "dialog.fileoverwrite", "dialog.error"
     ];
     main.provides = ["save"];
     return main;
