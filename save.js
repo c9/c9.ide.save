@@ -475,7 +475,7 @@ define(function(require, exports, module) {
                             emit("saveAs", { 
                                 oldPath: oldPath, 
                                 path: path, 
-                                tab: tab 
+                                document: tab.document
                             });
                         });
                     }
@@ -664,7 +664,7 @@ define(function(require, exports, module) {
                  * Fires before the file is being saved
                  * @event beforeSave
                  * @param {Object}   e
-                 * @param {String}   e.path      The path of the file that to be saved.
+                 * @param {String}   e.path      The path of the file to be saved.
                  * @param {Document} e.document  The document object that contains the file contents.
                  * @param {String}   e.value     The value of the document that is to be saved.
                  * @param {Object}   e.options   The options passed to the {@link #save} method.
@@ -675,12 +675,21 @@ define(function(require, exports, module) {
                  * Fires after a file is saved or had an error
                  * @event afterSave 
                  * @param {Object}   e
-                 * @param {String}   e.path      The path of the file that to be saved.
+                 * @param {String}   e.path      The path of the file to be saved.
                  * @param {Error}    e.err       An error object if an error occured during saving.
                  * @param {Document} e.document  The document object that contains the file contents.
                  * @param {Object}   e.options   The options passed to the {@link #save} method.
                  */
                 "afterSave",
+                /**
+                 * Fires after a file is saved at a new path
+                 * @event saveAs 
+                 * @param {Object}   e
+                 * @param {String}   e.path      The path of the file to be saved.
+                 * @param {String}   e.oldPath   The path of the file before it was saved.
+                 * @param {Document} e.document  The document object that contains the file contents.
+                 */
+                "saveAs",
                 /**
                  * Fires before the save warning is shown. The save 
                  * warning occurs when the document of a tab is in the changed 
