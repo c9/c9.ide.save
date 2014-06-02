@@ -469,7 +469,15 @@ define(function(require, exports, module) {
                     
                     function doSave(){
                         done();
-                        save(tab, { path: path }, callback);
+                        save(tab, { path: path }, function(){
+                            callback.apply(this, arguments);
+                            
+                            emit("saveAs", { 
+                                oldPath: oldPath, 
+                                path: path, 
+                                tab: tab 
+                            });
+                        });
                     }
                     
                     if (path == oldPath || !exists)
