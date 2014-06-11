@@ -260,7 +260,7 @@ define(function(require, exports, module) {
                     return;
                 
                 if (tab.document.undoManager.isAtBookmark() 
-                  || tab.document.meta.newfile
+                  || tab.document.meta.newfile && tab.path.charAt(0).match(/[^\/~]/)
                   || tab.document.meta.preview)
                     return;
                     
