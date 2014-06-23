@@ -261,7 +261,7 @@ define(function(require, exports, module) {
                 
                 if (tab.document.undoManager.isAtBookmark() 
                   || tab.document.meta.newfile && tab.path.charAt(0).match(/[^\/~]/)
-                  || tab.document.meta.preview)
+                  || tab.document.meta.preview || tab.document.meta.ignoreSave)
                     return;
                     
                 count++;
