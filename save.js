@@ -122,6 +122,10 @@ define(function(require, exports, module) {
                 // Still no changes
                 if (!tab.document.changed)
                     return;
+                    
+                // Don't check cloned tabs
+                if (tab.document.meta.cloned)
+                    return;
                 
                 // Already checked, now just closing - volatile attribute
                 if (tab.document.meta.$ignoreSave)
