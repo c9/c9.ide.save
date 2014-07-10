@@ -40,6 +40,8 @@ define(function(require, exports, module) {
         var NO = 1;
         var CANCEL = 0;
         
+        var DELAY_ALREADY_SAVING = 120 * 1000;
+        
         var loaded = false;
         function load(){
             if (loaded) return false;
@@ -352,10 +354,16 @@ define(function(require, exports, module) {
                 value: value,
                 options: options
             });
-            if (doSave === false)
+            if (doSave === false) {
+                // Saving may be disabled when e.g. viewing history
+                console.log("[save] Saving not allowed by beforeSave event.");
                 return;
-            if (!doSave) 
+            }
+            if (!doSave) {
+                // No custom saver; use default save function
+                // (note that Collab intercepts beforeWriteFile)
                 doSave = fs.writeFile;
+            }
     
             // Use the save as flow for files that don't have a path yet
             if (!options.path && (doc.meta.newfile || !tab.path)){
@@ -370,10 +378,11 @@ define(function(require, exports, module) {
             // Check if we're already saving!
             if (!options.force) {
                 if (doc.meta.$saveBuffer) {
-                    if (Date.now() - doc.meta.$saveBuffer[3] > 120000) {
+                    if (Date.now() - doc.meta.$saveBuffer[3] > DELAY_ALREADY_SAVING) {
                         doc.meta.$saveBuffer = true;
                     }
                     else {
+                        console.log("[save] Save cancelled, already saving");
                         doc.meta.$saveBuffer = [tab, options, callback, 
                             doc.meta.$saveBuffer[3] || Date.now()];
                         return;
