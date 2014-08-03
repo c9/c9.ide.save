@@ -2,7 +2,7 @@ define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "fs", "layout", "commands", "menus", "settings", "ui", 
         "tabManager", "dialog.question", "dialog.filesave", 
-        "dialog.fileoverwrite", "dialog.error"
+        "dialog.fileoverwrite", "dialog.error", "error_handler"
     ];
     main.provides = ["save"];
     return main;
@@ -349,6 +349,12 @@ define(function(require, exports, module) {
             // If document is unloaded return
             if (!doc.loaded)
                 return;
+                
+            if (!callback) {
+                var err = new Error("Missing callback to save");
+                if (imports.errorHandler)
+                    imports.errorHandler.reportError(err, {}, ["collab"]);
+            }
             
             var value = options.value || doc.value;
     
@@ -442,7 +448,7 @@ define(function(require, exports, module) {
                     options: options 
                 });
                 
-                callback(err);
+                callback && callback(err);
                 checkBuffer(doc);
             }, fnProgress);
     
