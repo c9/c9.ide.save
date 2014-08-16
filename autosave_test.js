@@ -1,4 +1,4 @@
-/*global describe it before after = */
+/*global describe it before after bar */
 
 "use client";
 
@@ -85,7 +85,6 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         var fs = imports.fs;
         var save = imports.save;
         var autosave = imports.autosave;
-        var settings = imports.settings;
         
         function countEvents(count, expected, done) {
             if (count == expected) 
