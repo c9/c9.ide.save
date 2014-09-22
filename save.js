@@ -547,15 +547,15 @@ define(function(require, exports, module) {
                 btnSave.setCaption("Saving");
                 tab.classList.add("saving");
                 
-                // Error if file isn't saved after 30 seconds and no progress
+                // Error if file isn't saved after 40 seconds and no progress
                 // event happened
                 (function testSaveTimeout(){
                     doc.meta.$saveTimer = setTimeout(function(){
                         if (!doc.meta.$saving) return;
                         
-                        // If we haven't seen any activity in the last 30secs
+                        // If we haven't seen any activity in the last 40secs
                         // lets call for a timeout
-                        if (Date.now() - doc.meta.$saving > 30000) {
+                        if (Date.now() - doc.meta.$saving > 40000) {
                             setSavingState(tab, "offline");
                             checkBuffer(tab.document);
                         }
