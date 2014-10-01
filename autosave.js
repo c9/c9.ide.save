@@ -2,7 +2,6 @@ define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "settings", "ui", "layout", "tooltip",
         "anims", "menus", "tabManager", "preferences", "save",
-        "ace.stripws"
     ];
     main.provides = ["autosave"];
     return main;
@@ -15,7 +14,7 @@ define(function(require, exports, module) {
         var tooltip = imports.tooltip;
         var tabs = imports.tabManager;
         var prefs = imports.preferences;
-        var stripws = imports["ace.stripws"];
+
         
         /***** Initialization *****/
         
@@ -51,7 +50,7 @@ define(function(require, exports, module) {
             
             settings.on("read", function(e) {
                 settings.setDefaults("user/general", [["autosave", "false"]]);
-                autosave = options.testing 
+                autosave = options.testing
                     || settings.getBool("user/general/@autosave");
                 transformButton();
             }, plugin);
@@ -80,10 +79,9 @@ define(function(require, exports, module) {
                     
                     clearTimeout(docChangeTimeout);
                     docChangeTimeout = setTimeout(function() {
-                        stripws.disable();
                         saveTab(tab);
-                    }, tab.document.meta.$slowSave 
-                        ? SLOW_CHANGE_TIMEOUT 
+                    }, tab.document.meta.$slowSave
+                        ? SLOW_CHANGE_TIMEOUT
                         : CHANGE_TIMEOUT);
                 }, plugin);
             }, plugin);
@@ -143,7 +141,7 @@ define(function(require, exports, module) {
             var pages = tabs.getTabs();
             for (var tab, i = 0, l = pages.length; i < l; i++) {
                 if ((tab = pages[i]).document.changed && tab.path)
-                    saveTab(tab)
+                    saveTab(tab);
             }
         }
     
@@ -172,13 +170,11 @@ define(function(require, exports, module) {
             }
             doc.meta.$slowSave = slow;
     
-            save.save(tab, { 
-                silentsave: true, 
-                timeout: 1, 
+            save.save(tab, {
+                silentsave: true,
+                timeout: 1,
                 value: value
-            }, function() {
-                stripws.enable();
-            });
+            }, function() {});
         }
     
         /***** Lifecycle *****/

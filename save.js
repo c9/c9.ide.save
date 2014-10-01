@@ -335,6 +335,7 @@ define(function(require, exports, module) {
         }
         
         // `silentsave` indicates whether the saving of the file is forced by the user or not.
+        // callback is optional and is not called if saving is canceled
         function save(tab, options, callback) {
             if (!tab && !(tab = tabManager.focussedTab))
                 return;
@@ -349,12 +350,6 @@ define(function(require, exports, module) {
             // If document is unloaded return
             if (!doc.loaded)
                 return;
-                
-            if (!callback) {
-                var err = new Error("Missing callback to save");
-                if (imports.errorHandler)
-                    imports.errorHandler.reportError(err, {}, ["collab"]);
-            }
             
             var value = options.value || doc.value;
     
