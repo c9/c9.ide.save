@@ -174,7 +174,7 @@ define(function(require, exports, module) {
                 }
                 
                 question(
-                    "Save this file?",
+                    "Would you like to save this file?",
                     "Save " + ui.escapeXML(tab.path) + "?",
                     "This file has unsaved changes. Your changes will be lost "
                         + "if you don't save them.",
