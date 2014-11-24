@@ -55,6 +55,8 @@ define(function(require, exports, module) {
             
             // This prevents the native save dialog to popup while being offline
             commands.addCommand({
+                name: "cancelBrowserSave",
+                group: "ignore",
                 bindKey: {mac: "Command-S", win: "Ctrl-S"},
                 exec: function(){}
             }, plugin);
