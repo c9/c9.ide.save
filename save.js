@@ -541,7 +541,7 @@ define(function(require, exports, module) {
                 ui.setStyleClass(saveStatus, "saving", ["saved", "error"]);
                 saveStatus.style.display = "block";
                 btnSave.currentState = SAVING;
-                btnSave.setCaption("Saving");
+                btnSave.setCaption("Saving...");
                 tab.classList.add("saving");
                 
                 // Error if file isn't saved after 40 seconds and no progress
@@ -572,7 +572,7 @@ define(function(require, exports, module) {
                 ui.setStyleClass(saveStatus, "saved", ["saving", "error"]);
                 saveStatus.style.display = "block";
                 btnSave.currentState = SAVED;
-                btnSave.setCaption("Changes saved");
+                btnSave.setCaption("All changes saved");
                 tab.classList.add("saved");
         
                 stateTimer = setTimeout(function () {
