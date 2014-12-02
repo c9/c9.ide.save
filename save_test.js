@@ -114,7 +114,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             
             tab.document.undoManager.once("change", function(){
                 expect(tab.document.changed).to.ok;
-                done();
+                setTimeout(done, 0);
             });
             setTimeout(function() {
                 tabs.focusTab(tab);

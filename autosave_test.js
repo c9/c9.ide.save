@@ -102,13 +102,15 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         function changeTab(path, done) {
             var tab = tabs.findTab(path);
             tabs.focusTab(tab);
-            tab.document.undoManager.once("change", done);
+            tab.document.undoManager.once("change", function(argument) {
+                done(tab);
+            });
             tab.document.editor.ace.insert("test");
             return tab;
         }
         
         describe('autosave', function() {
-            this.timeout(2000)
+            this.timeout(2000);
             
             before(function(done) {
                 apf.config.setProperty("allow-select", false);
@@ -138,8 +140,8 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             
             it('should automatically save a tab that is changed', function(done) {
                 var path = "/autosave1.txt";
-                var tab = changeTab(path, function(){
-                    expect(tab.document.changed).to.ok
+                changeTab(path, function(tab){
+                    expect(tab.document.changed).to.ok;
                     
                     save.once("afterSave", function(){
                         fs.readFile(path, function(err, data) {
@@ -148,9 +150,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                             
                             fs.unlink(path, function(){
                                 done();
-                            })
+                            });
                         });
-                    })
+                    });
                 });
             });
             
