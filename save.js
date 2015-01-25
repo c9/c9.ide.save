@@ -53,14 +53,6 @@ define(function(require, exports, module) {
                     || typeof tabManager.focussedTab.path == "string");
             }
             
-            // This prevents the native save dialog to popup while being offline
-            commands.addCommand({
-                name: "cancelBrowserSave",
-                group: "ignore",
-                bindKey: {mac: "Command-S", win: "Ctrl-S"},
-                exec: function(){}
-            }, plugin);
-            
             commands.addCommand({
                 name: "save",
                 hint: "save the currently active file to disk",
