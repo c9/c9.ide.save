@@ -9,15 +9,13 @@
         "url": "http://github.com/c9/c9.ide.save.git"
     },
     "plugins": {
-        "plugin": {
-            "autosave": {},
-            "save": {}
-        }
+        "autosave": {},
+        "save": {}
     },
     "categories": [
         "core"
     ],
     "licenses": [
-        ""
+        "MIT"
     ]
 }
