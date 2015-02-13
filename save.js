@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "fs", "layout", "commands", "menus", "settings", "ui", 
-        "tabManager", "dialog.question", "dialog.filesave", 
+        "tabManager", "dialog.question", "dialog.file", 
         "dialog.fileoverwrite", "dialog.error", "error_handler"
     ];
     main.provides = ["save"];
@@ -18,7 +18,7 @@ define(function(require, exports, module) {
         var layout = imports.layout;
         var tabManager = imports.tabManager;
         var question = imports["dialog.question"].show;
-        var showSaveAs = imports["dialog.filesave"].show;
+        var showSaveAs = imports["dialog.file"].show;
         var showError = imports["dialog.error"].show;
         
         var dirname = require("path").dirname;

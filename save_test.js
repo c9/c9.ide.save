@@ -63,7 +63,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         "plugins/c9.ide.dialog.common/fileoverwrite",
         "plugins/c9.ide.dialog.common/fileremove",
         "plugins/c9.ide.dialog.common/question",
-        "plugins/c9.ide.dialog.file/filesave",
+        "plugins/c9.ide.dialog.file/file",
         
         // Mock plugins
         {
@@ -81,7 +81,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             setup: expect.html.mocked
         },
         {
-            consumes: ["tabManager", "save", "fs", "dialog.filesave", "dialog.question"],
+            consumes: ["tabManager", "save", "fs", "dialog.file", "dialog.question"],
             provides: [],
             setup: main
         }
@@ -91,7 +91,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         var tabs = imports.tabManager;
         var fs = imports.fs;
         var save = imports.save;
-        var filesave = imports["dialog.filesave"];
+        var filesave = imports["dialog.file"];
         var question = imports["dialog.question"];
         
         function countEvents(count, expected, done) {
