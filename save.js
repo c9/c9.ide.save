@@ -331,8 +331,10 @@ define(function(require, exports, module) {
         // `silentsave` indicates whether the saving of the file is forced by the user or not.
         // callback is optional and is not called if saving is canceled
         function save(tab, options, callback) {
-            if (!tab && !(tab = tabManager.focussedTab))
+            if (!tab && !(tab = tabManager.focussedTab)) {
+                console.log("Tab not focused in save, returning.")
                 return;
+            }
     
             // Optional callback, against code, but allowing for now
             if (!options)
@@ -342,8 +344,10 @@ define(function(require, exports, module) {
             var path = options.path || tab.path;
             
             // If document is unloaded return
-            if (!doc.loaded)
+            if (!doc.loaded) {
+                console.log("Doc not loaded, returning");
                 return;
+            }
             
             var value = options.value || doc.value;
     
@@ -367,12 +371,15 @@ define(function(require, exports, module) {
             // Use the save as flow for files that don't have a path yet
             if (!options.path && (doc.meta.newfile || !tab.path)){
                 saveAs(tab, callback);
-                return;
+                console.log("Calling saveAs and returning");
+                return true;
             }
     
             // IF we're offline show a message notifying the user
-            if (!c9.has(c9.STORAGE))
+            if (!c9.has(c9.STORAGE)) {
+                console.log("Returning due to being offline");
                 return ideIsOfflineMessage();
+            }
     
             // Check if we're already saving!
             if (!options.force) {
@@ -384,11 +391,13 @@ define(function(require, exports, module) {
                         console.log("[save] Save cancelled, already saving");
                         doc.meta.$saveBuffer = [tab, options, callback, 
                             doc.meta.$saveBuffer[3] || Date.now()];
-                        return;
+                        return true;
                     }
                 }
                 doc.meta.$saveBuffer = true;
             }
+            
+            console.log("Setting state to saving");
             
             setSavingState(tab, "saving");
     
@@ -441,7 +450,8 @@ define(function(require, exports, module) {
                 checkBuffer(doc);
             }, fnProgress);
     
-            return false;
+            console.log("At end of save");
+            return true;
         }
         
         // TODO remove saveBuffer once there is a way to cancel fs.writeFile
