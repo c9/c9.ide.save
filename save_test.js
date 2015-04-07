@@ -116,8 +116,10 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 expect(tab.document.changed).to.ok;
                 done();
             });
-            tabs.focusTab(tab);
-            tab.document.editor.ace.insert("test");
+            setTimeout(function() {
+                tabs.focusTab(tab);
+                tab.document.editor.ace.insert("test");
+            });
             
             return tab;
         }
