@@ -200,14 +200,14 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 it('should queue saves when called sequentially', function(done) {
                     var tab = tabs.focussedTab;
                     var count = 0;
-                    var saveReturn = save.save(tab, null, function(err) {
+                    save.save(tab, null, function(err) {
                         if (err) throw err;
                         expect(count).to.equal(0);
                         count++;
                     });
                     tab.editor.ace.insert("test");
                     setTimeout(function() {
-                        saveReturn = save.save(tab, null, function(err) {
+                        save.save(tab, null, function(err) {
                             if (err) throw err;
                             expect(count).to.equal(1);
                             done();
@@ -394,12 +394,10 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             });
             describe("revertToSaved", function(){
                 before(function(done) {
-                    console.log("Revert to saved before")
                     files.every(function(path, i) {
                         fs.writeFile(path, path, function(){
                             tabs.openFile(path, function(){
                                 if (path == files[2]) {
-                                    console.log("Done revertToSaved.before")
                                     done();
                                 }
                             });
@@ -411,7 +409,6 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     tabs.getTabs().forEach(function(tab) {
                         tab.unload();
                     });
-                    console.log("Done revertToSaved.after")
                     done();
                 });
                 

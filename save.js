@@ -369,7 +369,7 @@ define(function(require, exports, module) {
             // Use the save as flow for files that don't have a path yet
             if (!options.path && (doc.meta.newfile || !tab.path)){
                 saveAs(tab, callback);
-                return true;
+                return;
             }
     
             // IF we're offline show a message notifying the user
