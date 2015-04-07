@@ -112,15 +112,11 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             if (!tab) 
                 return setTimeout(changeTab.bind(null, path, done), 100);
             
-            console.log("Adding once for change")
             tab.document.undoManager.once("change", function(){
-                console.log("Undo manager change received");
                 expect(tab.document.changed).to.ok;
                 done();
             });
-            console.log("Focusing tab");    
             tabs.focusTab(tab);
-            console.log("Calling insert test");
             tab.document.editor.ace.insert("test");
             
             return tab;
@@ -200,30 +196,26 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     });
                 });
                 it('should queue saves when called sequentially', function(done) {
-                    console.log("At start of save sequentially");
                     var tab = tabs.focussedTab;
                     var count = 0;
                     var saveReturn = save.save(tab, null, function(err) {
                         if (err) throw err;
                         expect(count).to.equal(0);
                         count++;
-                        console.log("Finished first save");
                     });
-                    if (!saveReturn) throw new Error("save.save returned false");
                     tab.editor.ace.insert("test");
-                    saveReturn = save.save(tab, null, function(err) {
-                        if (err) throw err;
-                        expect(count).to.equal(1);
-                        console.log("Finished second save");
-                        done();
+                    setTimeout(function() {
+                        saveReturn = save.save(tab, null, function(err) {
+                            if (err) throw err;
+                            expect(count).to.equal(1);
+                            done();
+                        });
                     });
-                    // if (!saveReturn) throw new Error("save.save returned " + saveReturn);
-                    console.log("At end of save sequentially");
                 });
                 it('should save a tab at a new path/filename', function(done) {
                     var tab = changeTab("/save2.txt", function(){
                         var path = "/save2b.txt";
-                        files.push(path); //cleanup
+                        files.push(path); // cleanup
                         
                         save.save(tab, { path: path }, function(err) {
                             if (err) throw err;
@@ -342,7 +334,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     });
                 });
             });
-            xdescribe("saveAs", function(){
+            describe("saveAs", function(){
                 before(function(done) {
                     files.every(function(path, i) {
                         fs.writeFile(path, path, function(){
@@ -422,11 +414,8 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 });
                 
                 it('should revert a change tab', function(done) {
-                    console.log("Start revert change tab")
                     var tab = changeTab("/save1.txt", function(){
-                        console.log("After changeTab");
                         save.revertToSaved(tab, function(err) {
-                            console.log("After revertToSaved");
                             expect(err).to.not.ok;
                             setTimeout(function(){
                                 expect(tab.document.changed).to.not.ok
@@ -435,14 +424,13 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                 expect(tab.document.undoManager.position).to.equal(1);
                                 expect(tab.document.undoManager.isAtBookmark()).to.ok;
                                 expect(tab.classList.names.indexOf("loading")).to.equal(-1);
-                                console.log("Finish revert change tab");
                                 done();
                             }, TIMEOUT);
                         });
                     });
                 });
             });
-            xdescribe("saveAll", function(){
+            describe("saveAll", function(){
                 before(function(done) {
                     var count = 0;
                     
@@ -485,7 +473,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     });
                 });
             });
-            xdescribe("saveAllInteractive", function(){
+            describe("saveAllInteractive", function(){
                 before(function(done) {
                     files.every(function(path, i) {
                         fs.writeFile(path, path, function(){
@@ -524,7 +512,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 });
             });
             if (!onload.remain) {
-                xdescribe("unload()", function(){
+                describe("unload()", function(){
                     it('should destroy all ui elements when it is unloaded', function(done) {
                         save.unload();
                         done();

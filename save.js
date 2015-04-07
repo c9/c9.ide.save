@@ -332,7 +332,6 @@ define(function(require, exports, module) {
         // callback is optional and is not called if saving is canceled
         function save(tab, options, callback) {
             if (!tab && !(tab = tabManager.focussedTab)) {
-                console.log("Tab not focused in save, returning.")
                 return;
             }
     
@@ -345,7 +344,6 @@ define(function(require, exports, module) {
             
             // If document is unloaded return
             if (!doc.loaded) {
-                console.log("Doc not loaded, returning");
                 return;
             }
             
@@ -371,13 +369,11 @@ define(function(require, exports, module) {
             // Use the save as flow for files that don't have a path yet
             if (!options.path && (doc.meta.newfile || !tab.path)){
                 saveAs(tab, callback);
-                console.log("Calling saveAs and returning");
                 return true;
             }
     
             // IF we're offline show a message notifying the user
             if (!c9.has(c9.STORAGE)) {
-                console.log("Returning due to being offline");
                 return ideIsOfflineMessage();
             }
     
@@ -391,13 +387,11 @@ define(function(require, exports, module) {
                         console.log("[save] Save cancelled, already saving");
                         doc.meta.$saveBuffer = [tab, options, callback, 
                             doc.meta.$saveBuffer[3] || Date.now()];
-                        return true;
+                        return;
                     }
                 }
                 doc.meta.$saveBuffer = true;
             }
-            
-            console.log("Setting state to saving");
             
             setSavingState(tab, "saving");
     
@@ -450,8 +444,7 @@ define(function(require, exports, module) {
                 checkBuffer(doc);
             }, fnProgress);
     
-            console.log("At end of save");
-            return true;
+            return false;
         }
         
         // TODO remove saveBuffer once there is a way to cancel fs.writeFile
