@@ -460,6 +460,7 @@ define(function(require, exports, module) {
                 var next = doc.meta.$saveBuffer;
                 delete doc.meta.$saveBuffer;
                 
+                // isAtBookmark checks if anything has changed since the last save. If nothing has changed we don't need to save again. 
                 if (next !== true && !doc.undoManager.isAtBookmark()) {
                     (next[1] || (next[1] = {})).force = true;
                     save.apply(window, next);

@@ -112,13 +112,14 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             if (!tab) 
                 return setTimeout(changeTab.bind(null, path, done), 100);
             
-            console.log("Focusing tab");
-            tabs.focusTab(tab);
+            console.log("Adding once for change")
             tab.document.undoManager.once("change", function(){
                 console.log("Undo manager change received");
                 expect(tab.document.changed).to.ok;
                 done();
             });
+            console.log("Focusing tab");    
+            tabs.focusTab(tab);
             console.log("Calling insert test");
             tab.document.editor.ace.insert("test");
             
@@ -128,7 +129,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         var TIMEOUT = 10;        
         var files = [];
         describe('save', function() {
-            this.timeout(1000)
+            this.timeout(3000)
             
             before(function(done) {
                 apf.config.setProperty("allow-select", false);
@@ -158,7 +159,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 });
             });
             
-            xdescribe("save", function(){
+            describe("save", function(){
                 before(function(done) {
                     var count = 0;
                     files.every(function(path, i) {
