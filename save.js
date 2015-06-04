@@ -348,6 +348,10 @@ define(function(require, exports, module) {
             }
             
             var value = options.value || doc.value;
+            if ((!value || !value.length) && !doc.ready) {
+                console.log("[save] Document has zero length and is not ready, aborting save.");
+                return;
+            }
     
             var doSave = emit("beforeSave", {
                 path: path,
