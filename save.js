@@ -255,6 +255,9 @@ define(function(require, exports, module) {
     
         function saveAll(callback) {
             var count = 0;
+            
+            var doSaveAll = emit("beforeSaveAll", {});
+            
             tabManager.getTabs().forEach(function (tab) {
                 if (typeof tab.path != "string")
                     return;
@@ -347,11 +350,6 @@ define(function(require, exports, module) {
                 return;
             }
             
-            if (tab.classList.contains("conflict")) {
-                console.log("[save] Tab is in conflict mode which needs to be resolved, aborting save.");
-                return;
-            }
-            
             var value = options.value || doc.value;
             if ((!value || !value.length) && !doc.ready) {
                 console.log("[save] Document has zero length and is not ready, aborting save.");
@@ -361,6 +359,7 @@ define(function(require, exports, module) {
             var doSave = emit("beforeSave", {
                 path: path,
                 document: doc,
+                tab: tab,
                 value: value,
                 options: options
             });
@@ -375,6 +374,11 @@ define(function(require, exports, module) {
                 doSave = fs.writeFile;
             }
     
+            if (tab.classList.contains("conflict")) {
+                console.log("[save] Tab is in conflict mode which needs to be resolved, aborting save.");
+                return;
+            }
+            
             // Use the save as flow for files that don't have a path yet
             if (!options.path && (doc.meta.newfile || !tab.path)){
                 saveAs(tab, callback);
