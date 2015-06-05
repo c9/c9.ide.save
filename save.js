@@ -347,6 +347,11 @@ define(function(require, exports, module) {
                 return;
             }
             
+            if (tab.classList.contains("conflict")) {
+                console.log("[save] Tab is in conflict mode which needs to be resolved, aborting save.");
+                return;
+            }
+            
             var value = options.value || doc.value;
             if ((!value || !value.length) && !doc.ready) {
                 console.log("[save] Document has zero length and is not ready, aborting save.");
