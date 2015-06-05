@@ -256,8 +256,6 @@ define(function(require, exports, module) {
         function saveAll(callback) {
             var count = 0;
             
-            var doSaveAll = emit("beforeSaveAll", {});
-            
             tabManager.getTabs().forEach(function (tab) {
                 if (typeof tab.path != "string")
                     return;
