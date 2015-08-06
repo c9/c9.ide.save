@@ -230,9 +230,11 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                 expect(data).to.equal("test/save2.txt");
                                 
                                 fs.unlink(path, function(){
-                                    tab.close();
-                                    expect(tabs.getTabs().indexOf(tab)).to.equal(-1);
-                                    done();
+                                    setTimeout(function(){
+                                        // give some time for tab to finish animation
+                                        expect(tabs.getTabs().indexOf(tab)).to.equal(-1);
+                                        done();
+                                    }, 10);
                                 });
                             });
                         });
