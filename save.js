@@ -446,6 +446,7 @@ define(function(require, exports, module) {
                 
                 emit("afterSave", { 
                     path: path,
+                    value: value,
                     document: doc, 
                     err: err, 
                     options: options 
