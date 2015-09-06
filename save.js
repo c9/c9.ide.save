@@ -841,7 +841,7 @@ define(function(require, exports, module) {
              * Get the value of the global saving caption UI.
              */
             getCaption: function() {
-                return btnSave.caption;
+                return btnSave.visible && btnSave.caption;
             },
             
             /**
