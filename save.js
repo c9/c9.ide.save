@@ -850,6 +850,7 @@ define(function(require, exports, module) {
              * @param {String} value
              */
             setCaption: function(value) {
+                btnSave.show();
                 btnSave.setCaption(value);
             }
         });
