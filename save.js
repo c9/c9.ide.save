@@ -829,9 +829,7 @@ define(function(require, exports, module) {
             getSavingState: getSavingState,
             
             /**
-             * Hide the global saving caption UI, if it has the given value.
-             * 
-             * @param {String} value
+             * Hide the global saving caption UI.
              */
             hideCaption: function() {
                 btnSave.hide();
