@@ -583,12 +583,12 @@ define(function(require, exports, module) {
                 btnSave.setCaption("All changes saved");
                 tab.classList.add("saved");
         
-                stateTimer = setTimeout(function () {
-                    if (btnSave.currentState === SAVED)
+                stateTimer = setTimeout(function() {
+                    if (btnSave.currentState === SAVED && btnSave.caption === "All changes saved")
                         btnSave.hide();
                 }, 4000);
                 
-                pageTimers[tab.name] = setTimeout(function () {
+                pageTimers[tab.name] = setTimeout(function() {
                     if (btnSave.currentState === SAVED) {
                         saveStatus.style.display = "none";
                         tab.classList.remove("saved");
@@ -828,6 +828,30 @@ define(function(require, exports, module) {
              * possible values: "saving", "saved", "changed", "offline"
              */
             getSavingState: getSavingState,
+            
+            /**
+             * Hide the global saving caption UI.
+             */
+            hideCaption: function() {
+                btnSave.hide();
+            },
+            
+            /**
+             * Get the value of the global saving caption UI.
+             */
+            getCaption: function() {
+                return btnSave.visible && btnSave.caption;
+            },
+            
+            /**
+             * Set the value of the global saving caption UI.
+             * 
+             * @param {String} value
+             */
+            setCaption: function(value) {
+                btnSave.show();
+                btnSave.setCaption(value);
+            }
         });
         
         register(null, {
