@@ -39,6 +39,7 @@ define(function(require, exports, module) {
         var YES = 2;
         var NO = 1;
         var CANCEL = 0;
+        var CAPTION_SAVED = "All changes saved";
         
         var DELAY_ALREADY_SAVING = 120 * 1000;
         
@@ -580,11 +581,11 @@ define(function(require, exports, module) {
                 ui.setStyleClass(saveStatus, "saved", ["saving", "error"]);
                 saveStatus.style.display = "block";
                 btnSave.currentState = SAVED;
-                btnSave.setCaption("All changes saved");
+                btnSave.setCaption(CAPTION_SAVED);
                 tab.classList.add("saved");
         
                 stateTimer = setTimeout(function() {
-                    if (btnSave.currentState === SAVED && btnSave.caption === "All changes saved")
+                    if (btnSave.currentState === SAVED && btnSave.caption === CAPTION_SAVED)
                         btnSave.hide();
                 }, 4000);
                 
@@ -838,8 +839,12 @@ define(function(require, exports, module) {
             
             /**
              * Get the value of the global saving caption UI.
+             * @return {String} the current caption or undefined if no caption
+             * or when showing "All changes saved".
              */
             getCaption: function() {
+                if (btnSave.caption == CAPTION_SAVED)
+                    return; // irrelevant; this will automatically disappear
                 return btnSave.visible && btnSave.caption;
             },
             
