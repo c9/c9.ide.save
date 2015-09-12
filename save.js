@@ -854,6 +854,7 @@ define(function(require, exports, module) {
              * @param {String} value
              */
             setCaption: function(value) {
+                ui.setStyleClass(btnSave.$ext, "saving", ["saved", "error"]);
                 btnSave.show();
                 btnSave.setCaption(value);
             }
