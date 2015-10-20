@@ -683,6 +683,11 @@ define(function(require, exports, module) {
              * @property {0} CANCEL  The state when the user clicked the "Cancel" button.
              */
             CANCEL: CANCEL,
+            /**
+             * 
+             */
+            get CAPTION_SAVED(){ return CAPTION_SAVED; },
+            set CAPTION_SAVED(value){ CAPTION_SAVED = value; },
             
             _events: [
                 /**
