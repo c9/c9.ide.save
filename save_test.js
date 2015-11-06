@@ -1,4 +1,4 @@
-/*global describe it before after = */
+/*global describe it before after bar */
 
 "use client";
 
@@ -110,7 +110,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         function changeTab(path, done) {
             var tab = tabs.findTab(path);
             if (!tab) 
-                return setTimeout(changeTab.bind(null, path, done), 100);
+                return setTimeout(changeTab.bind(null, path, done), 10);
             
             tab.document.undoManager.once("change", function(){
                 expect(tab.document.changed).to.ok;
@@ -127,7 +127,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
         var TIMEOUT = 10;        
         var files = [];
         describe('save', function() {
-            this.timeout(3000)
+            this.timeout(3000);
             
             before(function(done) {
                 apf.config.setProperty("allow-select", false);
@@ -223,7 +223,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                             if (err) throw err;
                             
                             expect(tab.path).to.equal(path);
-                            expect(tab.document.changed).to.not.ok
+                            expect(tab.document.changed).to.not.ok;
                             
                             fs.readFile(path, function(err, data) {
                                 if (err) throw err;
@@ -295,7 +295,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     var path = "/save3.txt";
                     var tab = changeTab(path, function(){
                         save.once("beforeWarn", function(){
-                            setTimeout(function(){
+                            question.once("show", function(){
                                 save.once("afterSave", function(){
                                     fs.readFile(path, function(err, data) {
                                         if (err) throw err;
@@ -305,7 +305,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                 });
                                 
                                 question.getElement("yes").dispatchEvent("click");
-                            }, 500)
+                            });
                         });
                         
                         tab.close();
@@ -315,9 +315,15 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                     var path = "/save1.txt";
                     var tab = tabs.findTab(path);
                     save.once("beforeWarn", function(){
-                        throw new Error();
+                        if (tab)
+                            throw new Error();
                     });
-                    done();
+                    tab.close();
+                    setTimeout(function(){
+                        tab = tabs.findTab(path);
+                        expect(tab).to.not.ok;
+                        done();
+                    });
                 });
                 it('should not be triggered when closing a new empty file', function(done) {
                     tabs.open({
@@ -334,7 +340,11 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                         });
                         
                         tab.close();
-                        done();
+                        setTimeout(function(){
+                            tab = tabs.findTab(tab.path);
+                            expect(tab).to.not.ok;
+                            done();
+                        });
                     });
                 });
             });
@@ -504,9 +514,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                                     done();
                                 });
                                 
-                                setTimeout(function(){
+                                question.once("show", function(){
                                     question.getElement("yestoall").dispatchEvent("click");
-                                }, TIMEOUT);
+                                });
                             });
                         });
                     });
