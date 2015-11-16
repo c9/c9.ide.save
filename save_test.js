@@ -2,9 +2,10 @@
 
 "use client";
 
-require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"], 
+require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"], 
   function (architect, chai, baseProc) {
     var expect = chai.expect;
+    var async = require("async");
     
     document.body.appendChild(document.createElement("div"))
         .setAttribute("id", "saveStatus");
@@ -150,11 +151,11 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 });
             });
             after(function(done) {
-                files.forEach(function(path) {
+                async.each(files, function(path, next) {
                     fs.unlink(path, function(){
-                        done();
+                        next();
                     });
-                });
+                }, done);
             });
             
             describe("save", function(){
