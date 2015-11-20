@@ -128,7 +128,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
         var TIMEOUT = 10;        
         var files = [];
         describe('save', function() {
-            this.timeout(3000);
+            this.timeout(10000);
             
             before(function(done) {
                 apf.config.setProperty("allow-select", false);
