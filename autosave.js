@@ -2,6 +2,7 @@ define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "settings", "ui", "layout", "tooltip",
         "anims", "menus", "tabManager", "preferences", "save",
+        "preferences.experimental"
     ];
     main.provides = ["autosave"];
     return main;
@@ -14,12 +15,11 @@ define(function(require, exports, module) {
         var tooltip = imports.tooltip;
         var tabs = imports.tabManager;
         var prefs = imports.preferences;
-
+        var experimental = imports["preferences.experimental"];
         
         /***** Initialization *****/
         
         var plugin = new Plugin("Ajax.org", main.consumes);
-        // var emit = plugin.getEmitter();
         
         var INTERVAL = 60000;
         var CHANGE_TIMEOUT = 500;
@@ -28,10 +28,11 @@ define(function(require, exports, module) {
         
         var docChangeTimeout = null;
         var btnSave, autosave, saveInterval;
+        var enabled = experimental.addExperiment("mount", false, "Files/Auto-Save");
         
         var loaded = false;
         function load(){
-            if (loaded) return false;
+            if (loaded || !enabled) return false;
             loaded = true;
             
             prefs.add({
