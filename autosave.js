@@ -26,7 +26,8 @@ define(function(require, exports, module) {
         
         var docChangeTimeout = null;
         var btnSave, autosave = true, saveInterval;
-        var enabled = experimental.addExperiment("autosave", false, "Files/Auto-Save");
+        var enabled = options.testing
+            || experimental.addExperiment("autosave", false, "Files/Auto-Save");
         
         var loaded = false;
         function load(){
