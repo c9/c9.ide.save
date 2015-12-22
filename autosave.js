@@ -1,8 +1,7 @@
 define(function(require, exports, module) {
     main.consumes = [
-        "Plugin", "c9", "ui", "layout", "tooltip",
-        "anims", "menus", "tabManager", "save",
-        "preferences.experimental"
+        "Plugin", "c9", "settings", "ui", "layout", "tooltip",
+        "anims", "menus", "tabManager", "preferences", "save",
     ];
     main.provides = ["autosave"];
     return main;
@@ -10,14 +9,17 @@ define(function(require, exports, module) {
     function main(options, imports, register) {
         var c9 = imports.c9;
         var Plugin = imports.Plugin;
+        var settings = imports.settings;
         var save = imports.save;
         var tooltip = imports.tooltip;
         var tabs = imports.tabManager;
-        var experimental = imports["preferences.experimental"];
+        var prefs = imports.preferences;
+
         
         /***** Initialization *****/
         
         var plugin = new Plugin("Ajax.org", main.consumes);
+        // var emit = plugin.getEmitter();
         
         var INTERVAL = 60000;
         var CHANGE_TIMEOUT = 500;
@@ -25,14 +27,38 @@ define(function(require, exports, module) {
         var SLOW_SAVE_THRESHOLD = 100 * 1024; // 100KB
         
         var docChangeTimeout = null;
-        var btnSave, autosave = true, saveInterval;
-        var enabled = options.testing
-            || experimental.addExperiment("autosave", false, "Files/Auto-Save");
+        var btnSave, autosave, saveInterval;
         
         var loaded = false;
         function load(){
-            if (loaded || !enabled) return false;
+            if (loaded) return false;
             loaded = true;
+            
+            prefs.add({
+                "File" : {
+                    position: 150,
+                    "Save" : {
+                        position: 100,
+                        "Enable Auto-Save" : {
+                            type: "checkbox",
+                            position: 100,
+                            path: "user/general/@autosave"
+                        }
+                    }
+                }
+            }, plugin);
+            
+            settings.on("read", function(e) {
+                settings.setDefaults("user/general", [["autosave", "false"]]);
+                autosave = options.testing
+                    || settings.getBool("user/general/@autosave");
+                transformButton();
+            }, plugin);
+    
+            settings.on("user/general", function(e) {
+                autosave = settings.getBool("user/general/@autosave");
+                transformButton();
+            }, plugin);
     
             // when we're back online we'll trigger an autosave if enabled
             c9.on("stateChange", function(e) {
@@ -157,8 +183,9 @@ define(function(require, exports, module) {
             load();
         });
         plugin.on("enable", function(){
-            autosave = true;
+            autosave = settings.getBool("user/general/@autosave");
             transformButton();
+            
         });
         plugin.on("disable", function(){
             autosave = false;
