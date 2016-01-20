@@ -125,7 +125,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
             return tab;
         }
 
-        var TIMEOUT = 10;        
+        var TIMEOUT = 15;
         var files = [];
         describe('save', function() {
             this.timeout(10000);
