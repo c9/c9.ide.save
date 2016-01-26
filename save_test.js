@@ -336,15 +336,19 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                             }
                         }
                     }, function(err, tab) {
-                        save.once("beforeWarn", function(){
+                        save.once("beforeWarn", function(_tab) {
+                            if (tab !== _tab) return;
                             throw new Error();
                         });
                         
-                        tab.close();
-                        setTimeout(function(){
-                            tab = tabs.findTab(tab.path);
-                            expect(tab).to.not.ok;
-                            done();
+                        setTimeout(function() {
+                            tab.close();
+                            
+                            setTimeout(function(){
+                                tab = tabs.findTab(tab.path);
+                                expect(tab).to.not.ok;
+                                done();
+                            });
                         });
                     });
                 });
