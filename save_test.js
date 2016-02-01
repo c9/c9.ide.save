@@ -110,17 +110,15 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
         
         function changeTab(path, done) {
             var tab = tabs.findTab(path);
-            if (!tab) 
-                return setTimeout(changeTab.bind(null, path, done), 10);
             
             tab.document.undoManager.once("change", function(){
                 expect(tab.document.changed).to.ok;
                 setTimeout(done, 0);
             });
-            setTimeout(function() {
-                tabs.focusTab(tab);
-                tab.document.editor.ace.insert("test");
-            });
+            tabs.focusTab(tab);
+            expect(tab.document.changed).to.not.ok;
+            tab.document.editor.ace.insert("test");
+            expect(tab.document.changed).to.ok;
             
             return tab;
         }
@@ -161,7 +159,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
             describe("save", function(){
                 before(function(done) {
                     var count = 0;
-                    files.every(function(path, i) {
+                    files.slice(0, 3).forEach(function(path, i) {
                         count++;
                         fs.writeFile(path, path, function(){
                             tabs.openFile(path, function(){
@@ -169,7 +167,6 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                                     done();
                             });
                         });
-                        return i == 2 ? false : true;
                     });
                 });
                 
@@ -355,14 +352,15 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
             });
             describe("saveAs", function(){
                 before(function(done) {
-                    files.every(function(path, i) {
+                    var count = 0;
+                    files.slice(0, 3).forEach(function(path, i) {
+                        count++;
                         fs.writeFile(path, path, function(){
                             tabs.openFile(path, function(){
-                                if (path == files[2])
+                                if (--count === 0)
                                     done();
                             });
                         });
-                        return i == 2 ? false : true;
                     });
                 });
                 after(function(done) {
@@ -411,15 +409,15 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
             });
             describe("revertToSaved", function(){
                 before(function(done) {
-                    files.every(function(path, i) {
+                    var count = 0;
+                    files.slice(0, 3).forEach(function(path, i) {
+                        count++;
                         fs.writeFile(path, path, function(){
                             tabs.openFile(path, function(){
-                                if (path == files[2]) {
+                                if (--count === 0)
                                     done();
-                                }
                             });
                         });
-                        return i == 2 ? false : true;
                     });
                 });
                 after(function(done) {
@@ -429,19 +427,17 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     done();
                 });
                 
-                it('should revert a change tab', function(done) {
+                it('should revert changed tab', function(done) {
                     var tab = changeTab("/save1.txt", function(){
                         save.revertToSaved(tab, function(err) {
                             expect(err).to.not.ok;
-                            setTimeout(function(){
-                                expect(tab.document.changed).to.not.ok
-                                expect(tab.document.value).to.equal("/save1.txt");
-                                expect(tab.document.undoManager.length).to.equal(2);
-                                expect(tab.document.undoManager.position).to.equal(1);
-                                expect(tab.document.undoManager.isAtBookmark()).to.ok;
-                                expect(tab.classList.names.indexOf("loading")).to.equal(-1);
-                                done();
-                            }, TIMEOUT);
+                            expect(tab.document.changed).to.not.ok;
+                            expect(tab.document.value).to.equal("/save1.txt");
+                            expect(tab.document.undoManager.length).to.equal(2);
+                            expect(tab.document.undoManager.position).to.equal(1);
+                            expect(tab.document.undoManager.isAtBookmark()).to.ok;
+                            expect(tab.classList.names.indexOf("loading")).to.equal(-1);
+                            done();
                         });
                     });
                 });
@@ -449,17 +445,14 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
             describe("saveAll", function(){
                 before(function(done) {
                     var count = 0;
-                    
-                    files.every(function(path, i) {
+                    files.slice(0, 3).forEach(function(path, i) {
                         count++;
-                        
                         fs.writeFile(path, path, function(){
                             tabs.openFile(path, function(){
                                 if (--count === 0)
                                     done();
                             });
                         });
-                        return i == 2 ? false : true;
                     });
                 });
                 after(function(done) {
@@ -491,14 +484,15 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
             });
             describe("saveAllInteractive", function(){
                 before(function(done) {
-                    files.every(function(path, i) {
+                    var count = 0;
+                    files.slice(0, 3).forEach(function(path, i) {
+                        count++;
                         fs.writeFile(path, path, function(){
                             tabs.openFile(path, function(){
-                                if (path == files[2])
+                                if (--count === 0)
                                     done();
                             });
                         });
-                        return i == 2 ? false : true;
                     });
                 });
                 after(function(done) {
