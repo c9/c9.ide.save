@@ -184,7 +184,7 @@ define(function(require, exports, module) {
                             close();
                         }
                     },
-                    { cancel: true, metadata: tab }
+                    { cancel: true, metadata: tab, yes: "Save", no: "Don't save" }
                 );
 
                 return false;
@@ -509,10 +509,9 @@ define(function(require, exports, module) {
                         return doSave();
 
                     question(
-                        "A file with this name already exists",
-                        path + " already exists, do you want to replace it?",
+                        "Save As",
                         "A file with the same name already exists in " + dirname(path) 
-                        + ". Click Yes to overwrite the existing document.",
+                        + ". Do you want to overwrite it?",
                         doSave,
                         function(){
                             done()
