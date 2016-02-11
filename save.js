@@ -448,9 +448,10 @@ define(function(require, exports, module) {
                 emit("afterSave", { 
                     path: path,
                     value: value,
-                    document: doc, 
+                    document: doc,
+                    tab: tab,
                     err: err, 
-                    options: options 
+                    options: options,
                 });
                 
                 callback && callback(err);
