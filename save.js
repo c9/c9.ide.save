@@ -254,7 +254,11 @@ define(function(require, exports, module) {
             });
         }
     
-        function saveAll(callback) {
+        function saveAll(options, callback) {
+            if (!callback) {
+                callback = options;
+                options = {};
+            }
             var count = 0;
             
             tabManager.getTabs().forEach(function (tab) {
@@ -262,7 +266,7 @@ define(function(require, exports, module) {
                     return;
                 
                 if (tab.document.undoManager.isAtBookmark() 
-                  || tab.document.meta.newfile && tab.path.charAt(0).match(/[^\/~]/)
+                  || tab.document.meta.newfile && (tab.path.charAt(0).match(/[^\/~]/) || options.skipNewFiles)
                   || tab.document.meta.preview || tab.document.meta.ignoreSave)
                     return;
                     
