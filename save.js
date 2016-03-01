@@ -303,7 +303,7 @@ define(function(require, exports, module) {
                 tabManager.activateTab(tab);
                 
                 question(
-                    "Save this file?",
+                    "Would you like to save this file?",
                     "Save " + ui.escapeXML(tab.path) + "?",
                     "This file has unsaved changes. Your changes will be lost "
                         + "if you don't save them.",
@@ -321,7 +321,7 @@ define(function(require, exports, module) {
                         else
                             next();
                     },
-                    { all: counter > 1, cancel: true, metadata: tab }
+                    { all: counter > 1, cancel: true, metadata: tab, yes: "Save", no: "Don't save", yestoall: "Save all", notoall: "Save none" }
                 );
             },
             function() {
