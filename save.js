@@ -515,11 +515,12 @@ define(function(require, exports, module) {
 
                     question(
                         "Save As",
-                        "A file with the same name already exists in " + dirname(path) 
-                        + ". Do you want to overwrite it?",
+                        "",
+                        "A file with the same name already exists in '"
+                        + dirname(path) + "'.\n Do you want to overwrite it?",
                         doSave,
                         function(){
-                            done()
+                            done();
                             onCancel();
                         },
                         { queue: false });

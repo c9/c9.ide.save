@@ -402,8 +402,14 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     setTimeout(function(){
                         var win = filesave.getElement("window");
                         expect(win.visible).to.ok;
-                        seen = true;
-                        win.hide();
+                        filesave.getElement("txtFilename").setValue("save1.txt");
+                        filesave.getElement("btnChoose").dispatchEvent("click");
+                        setTimeout(function(){
+                            var win = question.getElement("window");
+                            seen = true;
+                            expect(win.visible).to.ok;
+                            question.getElement("no").dispatchEvent("click");
+                        }, TIMEOUT);
                     }, TIMEOUT);
                 });
             });
