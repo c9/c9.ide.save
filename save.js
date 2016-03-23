@@ -2,7 +2,7 @@ define(function(require, exports, module) {
     main.consumes = [
         "Plugin", "c9", "fs", "layout", "commands", "menus", "settings", "ui", 
         "tabManager", "dialog.question", "dialog.file", 
-        "dialog.fileoverwrite", "dialog.error", "error_handler"
+        "dialog.fileoverwrite", "dialog.error", "error_handler", "vfs.log"
     ];
     main.provides = ["save"];
     return main;
@@ -20,6 +20,7 @@ define(function(require, exports, module) {
         var question = imports["dialog.question"].show;
         var showSaveAs = imports["dialog.file"].show;
         var showError = imports["dialog.error"].show;
+        var logger = imports["vfs.log"];
         
         var dirname = require("path").dirname;
         
@@ -427,6 +428,7 @@ define(function(require, exports, module) {
             }
             fnProgress(0, 1, 0);
         
+            logger.log("User saving " + path);
             doSave(path, value, function(err) {
                 if (err) {
                     if (!options.silentsave) {
@@ -436,6 +438,7 @@ define(function(require, exports, module) {
                         );
                     }
                     setSavingState(tab, "offline");
+                    logger.log("Failed to save " + path)
                 }
                 else {
                     delete doc.meta.newfile;
@@ -447,6 +450,7 @@ define(function(require, exports, module) {
                     
                     setSavingState(tab, "saved", options.timeout);
                     settings.save();
+                    logger.log("Successfully saved " + path);
                 }
                 
                 emit("afterSave", { 
