@@ -169,6 +169,9 @@ define(function(require, exports, module) {
                     emit("dialogClose", { tab: tab });
                 }
                 
+                if(tab.meta.$ignore)
+                    close();
+                else
                 question(
                     "Would you like to save this file?",
                     "Save " + ui.escapeXML(tab.path) + "?",
