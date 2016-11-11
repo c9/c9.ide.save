@@ -299,6 +299,10 @@ define(function(require, exports, module) {
                     save(tab, null, function(){});
                     return next();
                 }
+                if (state === NOTOALL) {
+                    tab.document.meta.ignoreSave = true;
+                    return next();
+                }
                 
                 // Activate tab
                 tabManager.activateTab(tab);
@@ -308,21 +312,20 @@ define(function(require, exports, module) {
                     "Save " + ui.escapeXML(tab.path) + "?",
                     "This file has unsaved changes. Your changes will be lost "
                         + "if you don't save them.",
-                    function(all, tab){ // Yes
+                    function(all, tab) { // Yes
                         state = all ? YESTOALL : YES;
-                        save(tab, null, function(){});
+                        save(tab, null, function() {});
                         next();
                     },
-                    function(all, cancel, tab){ // No
-                        state = cancel ? CANCEL : (all ? NOTOALL : NO);
-                    
-                        // If cancel or no to all, exit
-                        if (cancel || all)
-                            callback(state);
-                        else
-                            next();
+                    function(all, cancel, tab) { // No
+                        if (cancel)
+                            return callback(state);
+
+                        state = all ? NOTOALL : NO;
+                        tab.document.meta.ignoreSave = true;
+                        next();
                     },
-                    { all: counter > 1, cancel: true, metadata: tab, yes: "Save", no: "Don't save", yestoall: "Save all", notoall: "Save none" }
+                    { all: counter >= 1, cancel: true, metadata: tab, yes: "Save", no: "Don't save", yestoall: "Save all", notoall: "Save none" }
                 );
             },
             function() {
