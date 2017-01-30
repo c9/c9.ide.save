@@ -103,7 +103,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
         function changeTab(path, callback) {
             var tab = tabs.findTab(path);
             
-            tab.document.undoManager.once("change", function(){
+            tab.document.undoManager.once("change", function() {
                 expect(tab.document.changed).to.ok;
                 setTimeout(function() {
                     callback(null, tab);
@@ -138,26 +138,26 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
       
                 document.body.style.marginBottom = "180px";
                 
-                tabs.once("ready", function(){
+                tabs.once("ready", function() {
                     tabs.getPanes()[0].focus();
                     done();
                 });
             });
             after(function(done) {
                 async.each(files, function(path, next) {
-                    fs.unlink(path, function(){
+                    fs.unlink(path, function() {
                         next();
                     });
                 }, done);
             });
             
-            describe("save", function(){
+            describe("save", function() {
                 before(function(done) {
                     var count = 0;
                     files.slice(0, 3).forEach(function(path, i) {
                         count++;
-                        fs.writeFile(path, path, function(){
-                            tabs.openFile(path, function(){
+                        fs.writeFile(path, path, function() {
+                            tabs.openFile(path, function() {
                                 if (--count === 0)
                                     done();
                             });
@@ -169,12 +169,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     var path = "/save1.txt";
                     var count = 0;
                     
-                    var c1 = function(){ count++; };
+                    var c1 = function() { count++; };
                     
                     save.on("beforeSave", c1);
                     save.on("afterSave", c1);
                     
-                    changeTab(path, function(e, tab){
+                    changeTab(path, function(e, tab) {
                         save.save(tab, null, function(err) {
                             if (err) throw err;
                             expect(tab.document.changed).to.not.ok;
@@ -208,7 +208,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     });
                 });
                 it('should save a tab at a new path/filename', function(done) {
-                    changeTab("/save2.txt", function(e, tab){
+                    changeTab("/save2.txt", function(e, tab) {
                         var path = "/save2b.txt";
                         files.push(path); // cleanup
                         
@@ -222,8 +222,8 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                                 if (err) throw err;
                                 expect(data).to.equal("test/save2.txt");
                                 
-                                fs.unlink(path, function(){
-                                    setTimeout(function(){
+                                fs.unlink(path, function() {
+                                    setTimeout(function() {
                                         // give some time for tab to finish animation
                                         expect(tabs.getTabs().indexOf(tab)).to.equal(-1);
                                         done();
@@ -257,7 +257,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     });
                     
                     var seen = false;
-                    setTimeout(function(){
+                    setTimeout(function() {
                         var win = filesave.getElement("window");
                         var input = filesave.getElement("txtFilename");
                         expect(win.visible).to.ok;
@@ -279,7 +279,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                         }
                     }, function(err, tab) {
                         expect(err).to.not.ok;
-                        save.save(tab, { path: path}, function(err) {
+                        save.save(tab, { path: path }, function(err) {
                             expect(err).to.not.ok;
                             expect(tab.document.changed).not.ok;
                             expect(tab.document.meta.newfile).not.ok;
@@ -290,10 +290,10 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                 });
                 it('should be triggered when closing a changed tab', function(done) {
                     var path = "/save3.txt";
-                    changeTab(path, function(e, tab){
-                        save.once("beforeWarn", function(){
-                            question.once("show", function(){
-                                save.once("afterSave", function(){
+                    changeTab(path, function(e, tab) {
+                        save.once("beforeWarn", function() {
+                            question.once("show", function() {
+                                save.once("afterSave", function() {
                                     fs.readFile(path, function(err, data) {
                                         if (err) throw err;
                                         expect(data).to.equal("test" + path);
@@ -311,12 +311,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                 it('should not be triggered when closing an unchanged tab', function(done) {
                     var path = "/save1.txt";
                     var tab = tabs.findTab(path);
-                    save.once("beforeWarn", function(){
+                    save.once("beforeWarn", function() {
                         if (tab)
                             throw new Error();
                     });
                     tab.close();
-                    setTimeout(function(){
+                    setTimeout(function() {
                         tab = tabs.findTab(path);
                         expect(tab).to.not.ok;
                         done();
@@ -341,7 +341,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                         setTimeout(function() {
                             tab.close();
                             
-                            setTimeout(function(){
+                            setTimeout(function() {
                                 tab = tabs.findTab(tab.path);
                                 expect(tab).to.not.ok;
                                 done();
@@ -350,13 +350,13 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     });
                 });
             });
-            describe("saveAs", function(){
+            describe("saveAs", function() {
                 before(function(done) {
                     var count = 0;
                     files.slice(0, 3).forEach(function(path, i) {
                         count++;
-                        fs.writeFile(path, path, function(){
-                            tabs.openFile(path, function(){
+                        fs.writeFile(path, path, function() {
+                            tabs.openFile(path, function() {
                                 if (--count === 0)
                                     done();
                             });
@@ -373,7 +373,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                 it('should save a file under a new filename', function(done) {
                     var tab = tabs.focussedTab;
                     files.push("/save1b.txt");
-                    fs.unlink("/save1b.txt", function(){
+                    fs.unlink("/save1b.txt", function() {
                         save.saveAs(tab, function(err) {
                             expect(err).to.not.ok;
                             expect(seen).to.ok;
@@ -381,7 +381,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                         });
                         
                         var seen = false;
-                        setTimeout(function(){
+                        setTimeout(function() {
                             var win = filesave.getElement("window");
                             expect(win.visible).to.ok;
                             seen = true;
@@ -399,12 +399,12 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     });
                     
                     var seen = false;
-                    setTimeout(function(){
+                    setTimeout(function() {
                         var win = filesave.getElement("window");
                         expect(win.visible).to.ok;
                         filesave.getElement("txtFilename").setValue("save1.txt");
                         filesave.getElement("btnChoose").dispatchEvent("click");
-                        setTimeout(function(){
+                        setTimeout(function() {
                             var win = question.getElement("window");
                             seen = true;
                             expect(win.visible).to.ok;
@@ -413,13 +413,13 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     }, TIMEOUT);
                 });
             });
-            describe("revertToSaved", function(){
+            describe("revertToSaved", function() {
                 before(function(done) {
                     var count = 0;
                     files.slice(0, 3).forEach(function(path, i) {
                         count++;
-                        fs.writeFile(path, path, function(){
-                            tabs.openFile(path, function(){
+                        fs.writeFile(path, path, function() {
+                            tabs.openFile(path, function() {
                                 if (--count === 0)
                                     done();
                             });
@@ -434,7 +434,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                 });
                 
                 it('should revert changed tab', function(done) {
-                    changeTab("/save1.txt", function(e, tab){
+                    changeTab("/save1.txt", function(e, tab) {
                         save.revertToSaved(tab, function(err) {
                             expect(err).to.not.ok;
                             expect(tab.document.changed).to.not.ok;
@@ -448,13 +448,13 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     });
                 });
             });
-            describe("saveAll", function(){
+            describe("saveAll", function() {
                 before(function(done) {
                     var count = 0;
                     files.slice(0, 3).forEach(function(path, i) {
                         count++;
-                        fs.writeFile(path, path, function(){
-                            tabs.openFile(path, function(){
+                        fs.writeFile(path, path, function() {
+                            tabs.openFile(path, function() {
                                 if (--count === 0)
                                     done();
                             });
@@ -470,8 +470,8 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                 
                 it('should save all changed files', function(done) {
                     var page3 = tabs.findTab("/save3.txt");
-                    changeTab("/save1.txt", function(e, page1){
-                        changeTab("/save2.txt", function(e, page2){
+                    changeTab("/save1.txt", function(e, page1) {
+                        changeTab("/save2.txt", function(e, page2) {
                             expect(page1.document.changed).to.ok;
                             expect(page2.document.changed).to.ok;
                             expect(page3.document.changed).to.not.ok;
@@ -488,13 +488,13 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                     });
                 });
             });
-            describe("saveAllInteractive", function(){
+            describe("saveAllInteractive", function() {
                 before(function(done) {
                     var count = 0;
                     files.slice(0, 3).forEach(function(path, i) {
                         count++;
-                        fs.writeFile(path, path, function(){
-                            tabs.openFile(path, function(){
+                        fs.writeFile(path, path, function() {
+                            tabs.openFile(path, function() {
                                 if (--count === 0)
                                     done();
                             });
@@ -509,9 +509,9 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                 });
                 
                 it('should be triggered when closing multiple pages that are changed', function(done) {
-                    changeTab("/save1.txt", function(e, page1){
-                        changeTab("/save2.txt", function(e, page2){
-                            changeTab("/save3.txt", function(e, page3){
+                    changeTab("/save1.txt", function(e, page1) {
+                        changeTab("/save2.txt", function(e, page2) {
+                            changeTab("/save3.txt", function(e, page3) {
                                 var pages = [page1, page2, page3];
                                 
                                 save.saveAllInteractive(pages, function(result) {
@@ -519,7 +519,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                                     done();
                                 });
                                 
-                                question.once("show", function(){
+                                question.once("show", function() {
                                     question.getElement("yestoall").dispatchEvent("click");
                                 });
                             });
@@ -528,7 +528,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root", "async"],
                 });
             });
             if (!onload.remain) {
-                describe("unload()", function(){
+                describe("unload()", function() {
                     it('should destroy all ui elements when it is unloaded', function(done) {
                         save.unload();
                         done();

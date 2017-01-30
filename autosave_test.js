@@ -116,13 +116,13 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
                 apf.config.setProperty("allow-select", false);
                 apf.config.setProperty("allow-blur", false);
                 
-                tabs.once("ready", function(){
+                tabs.once("ready", function() {
                     tabs.getPanes()[0].focus();
                     var path = "/autosave1.txt";
                     fs.writeFile(path, path, function(err) {
                         if (err) throw err;
                     
-                        tabs.openFile(path, function(){
+                        tabs.openFile(path, function() {
                             setTimeout(done, 50);
                         });
                     });
@@ -140,15 +140,15 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             
             it('should automatically save a tab that is changed', function(done) {
                 var path = "/autosave1.txt";
-                changeTab(path, function(tab){
+                changeTab(path, function(tab) {
                     expect(tab.document.changed).to.ok;
                     
-                    save.once("afterSave", function(){
+                    save.once("afterSave", function() {
                         fs.readFile(path, function(err, data) {
                             if (err) throw err;
                             expect(data).to.equal("test" + path);
                             
-                            fs.unlink(path, function(){
+                            fs.unlink(path, function() {
                                 done();
                             });
                         });
@@ -157,7 +157,7 @@ require(["lib/architect/architect", "lib/chai/chai", "/vfs-root"],
             });
             
             if (!onload.remain) {
-                describe("unload()", function(){
+                describe("unload()", function() {
                     it('should destroy all ui elements when it is unloaded', function(done) {
                         autosave.unload();
                         done();

@@ -30,7 +30,7 @@ define(function(require, exports, module) {
             || experimental.addExperiment("autosave", false, "Files/Auto-Save");
         
         var loaded = false;
-        function load(){
+        function load() {
             if (loaded || !enabled) return false;
             loaded = true;
     
@@ -78,7 +78,7 @@ define(function(require, exports, module) {
             }, plugin);
         }
         
-        function transformButton(){
+        function transformButton() {
             if (!btnSave) return;
             if (btnSave.autosave === autosave) return;
             
@@ -153,18 +153,18 @@ define(function(require, exports, module) {
     
         /***** Lifecycle *****/
         
-        plugin.on("load", function(){
+        plugin.on("load", function() {
             load();
         });
-        plugin.on("enable", function(){
+        plugin.on("enable", function() {
             autosave = true;
             transformButton();
         });
-        plugin.on("disable", function(){
+        plugin.on("disable", function() {
             autosave = false;
             transformButton();
         });
-        plugin.on("unload", function(){
+        plugin.on("unload", function() {
             if (saveInterval)
                 clearInterval(saveInterval);
     

@@ -45,7 +45,7 @@ define(function(require, exports, module) {
         var DELAY_ALREADY_SAVING = 120 * 1000;
         
         var loaded = false;
-        function load(){
+        function load() {
             if (loaded) return false;
             loaded = true;
             
@@ -58,20 +58,20 @@ define(function(require, exports, module) {
             commands.addCommand({
                 name: "save",
                 hint: "save the currently active file to disk",
-                bindKey: {mac: "Command-S", win: "Ctrl-S"},
+                bindKey: { mac: "Command-S", win: "Ctrl-S" },
                 isAvailable: available,
                 exec: function () {
-                    save(null, null, function(){});
+                    save(null, null, function() {});
                 }
             }, plugin);
     
             commands.addCommand({
                 name: "saveas",
                 hint: "save the file to disk with a different filename",
-                bindKey: {mac: "Command-Shift-S", win: "Ctrl-Shift-S"},
+                bindKey: { mac: "Command-Shift-S", win: "Ctrl-Shift-S" },
                 isAvailable: available,
                 exec: function () {
-                    saveAs(null, function(){});
+                    saveAs(null, function() {});
                 }
             }, plugin);
     
@@ -80,7 +80,7 @@ define(function(require, exports, module) {
                 hint: "save all unsaved files",
                 isAvailable: available,
                 exec: function () {
-                    saveAll(function(){});
+                    saveAll(function() {});
                 }
             }, plugin);
     
@@ -90,7 +90,7 @@ define(function(require, exports, module) {
                 bindKey: { mac: "Ctrl-Shift-Q", win: "Ctrl-Shift-Q" },
                 isAvailable: available,
                 exec: function () {
-                    revertToSaved(null, function(){});
+                    revertToSaved(null, function() {});
                 }
             }, plugin);
     
@@ -138,7 +138,7 @@ define(function(require, exports, module) {
                     return;
                 
                 // For autosave and other plugins
-                if (emit("beforeWarn", { tab : tab }) === false)
+                if (emit("beforeWarn", { tab: tab }) === false)
                     return;
                 
                 // If currently saving, lets see if that succeeds
@@ -174,10 +174,10 @@ define(function(require, exports, module) {
                     "Save " + ui.escapeXML(tab.path) + "?",
                     "This file has unsaved changes. Your changes will be lost "
                         + "if you don't save them.",
-                    function(all, tab){ // Yes
-                        save(tab, {silentsave: true}, close);
+                    function(all, tab) { // Yes
+                        save(tab, { silentsave: true }, close);
                     },
-                    function(all, cancel, tab){ // No
+                    function(all, cancel, tab) { // No
                         if (cancel) {
                             emit("dialogCancel", { tab: tab });
                         }
@@ -193,10 +193,10 @@ define(function(require, exports, module) {
             
             saveStatus = document.getElementById("saveStatus");
     
-            var toolbar = layout.findParent({name: "save"});
+            var toolbar = layout.findParent({ name: "save" });
             btnSave = ui.insertByIndex(toolbar, new ui.button({
                 id: "btnSave",
-                "class"  : "btnSave",
+                "class": "btnSave",
                 caption: "Save",
                 tooltip: "Save",
                 disabled: "true",
@@ -248,10 +248,10 @@ define(function(require, exports, module) {
             tabManager.reload(tab, callback);
         }
         
-        function revertToSavedAll(){
+        function revertToSavedAll() {
             tabManager.getTabs().forEach(function(tab) {
                 if (tab.path)
-                    tabManager.reload(tab, function(){});
+                    tabManager.reload(tab, function() {});
             });
         }
     
@@ -296,7 +296,7 @@ define(function(require, exports, module) {
                 
                 // Yes to all saves all files
                 if (state == YESTOALL) {
-                    save(tab, null, function(){});
+                    save(tab, null, function() {});
                     return next();
                 }
                 if (state === NOTOALL) {
@@ -387,7 +387,7 @@ define(function(require, exports, module) {
             }
             
             // Use the save as flow for files that don't have a path yet
-            if (!options.path && (doc.meta.newfile || !tab.path)){
+            if (!options.path && (doc.meta.newfile || !tab.path)) {
                 saveAs(tab, callback);
                 return;
             }
@@ -441,7 +441,7 @@ define(function(require, exports, module) {
                         );
                     }
                     setSavingState(tab, "offline");
-                    logger.log("Failed to save " + path)
+                    logger.log("Failed to save " + path);
                 }
                 else {
                     delete doc.meta.newfile;
@@ -493,7 +493,7 @@ define(function(require, exports, module) {
             if (typeof tab.path != "string")
                 return;
     
-            function onCancel(){
+            function onCancel() {
                 var err = new Error("User Cancelled Save");
                 err.code = "EUSERCANCEL";
                 err.tab = tab;
@@ -504,9 +504,9 @@ define(function(require, exports, module) {
                 function(path, exists, done) {
                     var oldPath = tab.path;
                     
-                    function doSave(){
+                    function doSave() {
                         done();
-                        save(tab, { path: path }, function(){
+                        save(tab, { path: path }, function() {
                             callback.apply(this, arguments);
                             
                             emit("saveAs", { 
@@ -526,7 +526,7 @@ define(function(require, exports, module) {
                         "A file with the same name already exists in '"
                         + dirname(path) + "'.\n Do you want to overwrite it?",
                         doSave,
-                        function(){
+                        function() {
                             done();
                             onCancel();
                         },
@@ -567,8 +567,8 @@ define(function(require, exports, module) {
                 
                 // Error if file isn't saved after 40 seconds and no progress
                 // event happened
-                (function testSaveTimeout(){
-                    doc.meta.$saveTimer = setTimeout(function(){
+                (function testSaveTimeout() {
+                    doc.meta.$saveTimer = setTimeout(function() {
                         if (!doc.meta.$saving) return;
                         
                         // If we haven't seen any activity in the last 40secs
@@ -627,13 +627,13 @@ define(function(require, exports, module) {
         
         /***** Lifecycle *****/
         
-        plugin.on("load", function(){
+        plugin.on("load", function() {
             load();
         });
-        plugin.on("enable", function(){
+        plugin.on("enable", function() {
             btnSave && btnSave.enable();
         });
-        plugin.on("disable", function(){
+        plugin.on("disable", function() {
             btnSave && btnSave.disable();
             
             tabManager.getTabs().forEach(function(tab) {
@@ -650,7 +650,7 @@ define(function(require, exports, module) {
                 }
             });
         });
-        plugin.on("unload", function(){
+        plugin.on("unload", function() {
             loaded = false;
         });
         
@@ -698,8 +698,8 @@ define(function(require, exports, module) {
             /**
              * 
              */
-            get CAPTION_SAVED(){ return CAPTION_SAVED; },
-            set CAPTION_SAVED(value){ CAPTION_SAVED = value; },
+            get CAPTION_SAVED() { return CAPTION_SAVED; },
+            set CAPTION_SAVED(value) { CAPTION_SAVED = value; },
             
             _events: [
                 /**
